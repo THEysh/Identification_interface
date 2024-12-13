@@ -1,9 +1,16 @@
 # coding:utf-8
+from PIL.ImagePalette import random
 from PyQt5.QtCore import Qt, QPoint, QSize, QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
-from qfluentwidgets import PushButton, ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap, QFont
+from qfluentwidgets import PushButton, ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip, FluentLabelBase, \
+    PrimaryPushButton, SubtitleLabel
 from PyQt5.QtWidgets import QFileDialog
+import random
+
+from emoji import get_emj
+
+
 class DraggableImageLabel(ImageLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -63,10 +70,12 @@ class DraggableImageLabel(ImageLabel):
     def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
             self.dragging = False
+from qfluentwidgets import FluentIcon as FIF
 
 class HomeInterface(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+
         self.hBoxLayout = QHBoxLayout(self)
 
         # 左侧面板
@@ -81,13 +90,13 @@ class HomeInterface(QFrame):
         self.setupUI()
         self.setObjectName('HomeInterface')
 
-        self.stateTooltip = None
 
     def setupUI(self):
+        # 设置加载模型小卡片
+        self.stateTooltip = None
         # 添加左侧按钮
-        self.loadImage1Btn = PushButton('加载图片', self.leftPanel)
-        self.inflabel = StrongBodyLabel("识别结果：11")
-
+        self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, '加载图片', self.leftPanel)
+        self.inflabel = StrongBodyLabel("识别结果:???"+get_emj())
         self.leftLayout.addWidget(self.loadImage1Btn)
         self.leftLayout.addWidget(self.inflabel)
         self.leftLayout.addStretch()
@@ -107,16 +116,7 @@ class HomeInterface(QFrame):
         # 添加图片到右侧布局
         self.rightLayout.addWidget(self.imageLabel1)
         self.rightLayout.addWidget(self.imageLabel2)
-        
-        # 设置右侧面板样式
-        self.rightPanel.setStyleSheet("""
-            QFrame {
-                background-color: #f0f0f0;
-                border-radius: 10px;
-                padding: 10px;
-            }
-        """)
-        
+
         # 将左右面板添加到主布局
         self.hBoxLayout.addWidget(self.leftPanel)
         self.hBoxLayout.addWidget(self.rightPanel, 1)
@@ -132,13 +132,7 @@ class HomeInterface(QFrame):
             "./",
             "Images (*.png *.jpg *.jpeg *.bmp *.gif)"
         )
-        # if file_path:
-        #     if image_num == 1:
-        #         self.imageLabel1.setCustomImage(file_path)
-        #         self.imageLabel1.zoom_factor = 1.0  # 重置缩放因子
-        #     else:
-        #         self.imageLabel2.setCustomImage(file_path)
-        #         self.imageLabel2.zoom_factor = 1.0  # 重置缩放因子
+        if len(file_path) == 0: return
         self.imageLabel1.setCustomImage(file_path)
         self.imageLabel1.zoom_factor = 1.0  # 重置缩放因子
         self.predictedOutputs(file_path)
@@ -151,15 +145,15 @@ class HomeInterface(QFrame):
         self.ComputationDisplayCard()
         self.imageLabel2.setCustomImage(file_path)
         self.imageLabel2.zoom_factor = 1.0  # 重置缩放因子
+        self.inflabel.setText("识别结果: " + str(random.randint(1, 31)) +" "+get_emj())
 
 
     def ComputationDisplayCard(self):
         if self.stateTooltip:
-            self.stateTooltip.setContent('完成啦 😆')
+            self.stateTooltip.setContent('完成啦'+get_emj())
             self.stateTooltip.setState(True)
             self.stateTooltip = None
         else:
-            self.stateTooltip = StateToolTip('模型正在全力计算中', '请耐心等待呦~~', self)
+            self.stateTooltip = StateToolTip('模型正在全力计算中'+get_emj() , '请耐心等待呦~~', self)
             self.stateTooltip.move(510, 30)
             self.stateTooltip.show()
-

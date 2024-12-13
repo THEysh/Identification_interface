@@ -5,11 +5,11 @@ from PyQt5.QtCore import Qt, QUrl, QSize, QEventLoop, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
-                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
-                            InfoBadgePosition, FluentBackgroundTheme, SplashScreen)
+                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, SplashScreen)
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 
+from emoji import get_emj
 from home import HomeInterface
 
 
@@ -33,8 +33,6 @@ class Window(FluentWindow):
         # create sub interface
         self.homeInterface = HomeInterface(self)
         self.folderInterface = Widget('Folder Interface', self)
-        self.folderInterface1 = Widget('Folder Interface 1', self)
-        self.folderInterface2 = Widget('Folder Interface 2', self)
         self.settingInterface = Widget('Setting Interface', self)
         self.splashScreen = None
 
@@ -43,8 +41,6 @@ class Window(FluentWindow):
     def initNavigation(self):
         self.addSubInterface(self.homeInterface, FIF.HOME, '欢迎回来')
         self.addSubInterface(self.folderInterface, FIF.FOLDER, '文件夹 ', NavigationItemPosition.SCROLL)
-        self.addSubInterface(self.folderInterface1, FIF.FOLDER, '文件夹 1 ', parent=self.folderInterface)
-        self.addSubInterface(self.folderInterface2, FIF.FOLDER, '文件夹 2 ', parent=self.folderInterface)
 
         # add custom widget to bottom
         self.navigationInterface.addWidget(
@@ -84,7 +80,7 @@ class Window(FluentWindow):
 
     def showMessageBox(self):
         w = MessageBox(
-            '🥰AI铸字识别',
+            get_emj() + ' AI铸字识别 ' + get_emj() ,
             '古代铸字历史悠久，铸字艺术独具特色，例如青铜器、陶瓷器、度量衡器等上面都有铸字。这些铸字不仅代表着当时的文字形式，也蕴含着丰富的历史文化信息。🥤。'
             '古代铸字历史悠久，铸字艺术独具特色，例如青铜器、陶瓷器、度量衡器等上面都有铸字。这些铸字不仅代表着当时的文字形式，也蕴含着丰富的历史文化信息。🚀',
             self
