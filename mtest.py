@@ -15,12 +15,12 @@ class Demo(QWidget):
         self.resize(800, 300)
         self.btn = PushButton('Click Me', parent=self)
         self.btn.move(360, 225)
-        self.btn.clicked.connect(self.onButtonClicked)
+        self.btn.clicked.connect(self.modelLoadCard)
         self.stateTooltip = None
 
         self.setStyleSheet('Demo{background:white}')
 
-    def onButtonClicked(self):
+    def modelLoadCard(self):
         if self.stateTooltip:
             self.stateTooltip.setContent('模型训练完成啦 😆')
             self.stateTooltip.setState(True)

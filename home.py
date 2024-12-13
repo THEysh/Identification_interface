@@ -1,9 +1,9 @@
 # coding:utf-8
-from PyQt5.QtCore import Qt, QPoint, QSize
+from PyQt5.QtCore import Qt, QPoint, QSize, QEventLoop, QTimer
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
-from qfluentwidgets import PushButton, ImageLabel, FlowLayout, StrongBodyLabel
-
+from qfluentwidgets import PushButton, ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip
+from PyQt5.QtWidgets import QFileDialog
 class DraggableImageLabel(ImageLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -81,14 +81,14 @@ class HomeInterface(QFrame):
         self.setupUI()
         self.setObjectName('HomeInterface')
 
+        self.stateTooltip = None
+
     def setupUI(self):
         # 添加左侧按钮
-        self.loadImage1Btn = PushButton('加载图片1', self.leftPanel)
-        self.loadImage2Btn = PushButton('加载图片2', self.leftPanel)
+        self.loadImage1Btn = PushButton('加载图片', self.leftPanel)
         self.inflabel = StrongBodyLabel("识别结果：11")
 
         self.leftLayout.addWidget(self.loadImage1Btn)
-        self.leftLayout.addWidget(self.loadImage2Btn)
         self.leftLayout.addWidget(self.inflabel)
         self.leftLayout.addStretch()
         
@@ -122,21 +122,44 @@ class HomeInterface(QFrame):
         self.hBoxLayout.addWidget(self.rightPanel, 1)
         
         # 连接按钮信号
-        self.loadImage1Btn.clicked.connect(lambda: self.loadImage(1))
-        self.loadImage2Btn.clicked.connect(lambda: self.loadImage(2))
+        self.loadImage1Btn.clicked.connect(lambda: self.loadImage())
 
-    def loadImage(self, image_num):
-        from PyQt5.QtWidgets import QFileDialog
+
+    def loadImage(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            f"选择图片 {image_num}",
-            "",
+            f"选择一张图片进行预测",
+            "./",
             "Images (*.png *.jpg *.jpeg *.bmp *.gif)"
         )
-        if file_path:
-            if image_num == 1:
-                self.imageLabel1.setCustomImage(file_path)
-                self.imageLabel1.zoom_factor = 1.0  # 重置缩放因子
-            else:
-                self.imageLabel2.setCustomImage(file_path)
-                self.imageLabel2.zoom_factor = 1.0  # 重置缩放因子
+        # if file_path:
+        #     if image_num == 1:
+        #         self.imageLabel1.setCustomImage(file_path)
+        #         self.imageLabel1.zoom_factor = 1.0  # 重置缩放因子
+        #     else:
+        #         self.imageLabel2.setCustomImage(file_path)
+        #         self.imageLabel2.zoom_factor = 1.0  # 重置缩放因子
+        self.imageLabel1.setCustomImage(file_path)
+        self.imageLabel1.zoom_factor = 1.0  # 重置缩放因子
+        self.predictedOutputs(file_path)
+
+    def predictedOutputs(self, file_path):
+        self.ComputationDisplayCard()
+        loop = QEventLoop(self)
+        QTimer.singleShot(1000, loop.quit)
+        loop.exec()
+        self.ComputationDisplayCard()
+        self.imageLabel2.setCustomImage(file_path)
+        self.imageLabel2.zoom_factor = 1.0  # 重置缩放因子
+
+
+    def ComputationDisplayCard(self):
+        if self.stateTooltip:
+            self.stateTooltip.setContent('完成啦 😆')
+            self.stateTooltip.setState(True)
+            self.stateTooltip = None
+        else:
+            self.stateTooltip = StateToolTip('模型正在全力计算中', '请耐心等待呦~~', self)
+            self.stateTooltip.move(510, 30)
+            self.stateTooltip.show()
+

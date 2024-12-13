@@ -17,6 +17,7 @@ class Widget(QFrame):
 
     def __init__(self, text: str, parent=None):
         super().__init__(parent=parent)
+
         self.label = SubtitleLabel(text, self)
         self.hBoxLayout = QHBoxLayout(self)
         setFont(self.label, 24)
@@ -35,7 +36,7 @@ class Window(FluentWindow):
         self.folderInterface1 = Widget('Folder Interface 1', self)
         self.folderInterface2 = Widget('Folder Interface 2', self)
         self.settingInterface = Widget('Setting Interface', self)
-
+        self.splashScreen = None
 
         self.load()
 
@@ -64,7 +65,7 @@ class Window(FluentWindow):
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
-        self.splashScreen = SplashScreen(self.windowIcon(), self)
+        self.splashScreen = SplashScreen(self.windowIcon(), self, enableShadow=False)
         titleBar = StandardTitleBar(self.splashScreen)
         titleBar.setIcon(self.windowIcon())
         titleBar.setTitle(self.windowTitle())
@@ -75,7 +76,7 @@ class Window(FluentWindow):
         self.initNavigation()
         # 3. 加载模型,模拟时间定时器
         loop = QEventLoop(self)
-        QTimer.singleShot(1000, loop.quit)
+        QTimer.singleShot(400, loop.quit)
         loop.exec()
 
         # 4. 隐藏启动页面
