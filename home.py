@@ -1,10 +1,10 @@
 # coding:utf-8
 from PIL.ImagePalette import random
 from PyQt5.QtCore import Qt, QPoint, QSize, QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout, QLabel
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap, QFont
-from qfluentwidgets import PushButton, ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip, FluentLabelBase, \
-    PrimaryPushButton, SubtitleLabel
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
+from qfluentwidgets import ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip, FluentLabelBase, \
+    PrimaryPushButton
 from PyQt5.QtWidgets import QFileDialog
 import random
 
@@ -80,7 +80,7 @@ class HomeInterface(QFrame):
 
         # 左侧面板
         self.leftPanel = QFrame(self)
-        self.leftPanel.setMaximumWidth(150)
+        self.leftPanel.setMaximumWidth(200)
         self.leftLayout = QVBoxLayout(self.leftPanel)
 
         # 右侧面板
