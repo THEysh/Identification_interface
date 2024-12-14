@@ -1,20 +1,36 @@
-import random
-import string
+import sys
+from PyQt5.QtWidgets import QVBoxLayout, QFrame, QPushButton, QApplication
+from PyQt5.QtCore import QTimer, QDateTime
+from qfluentwidgets import PushButton
 
-def getEmj():
-    # 这里简单地用ASCII字符模拟表情符号生成
-    return random.choice(string.ascii_letters)
 
-def predict_result():
-    # 确保随机数生成部分被执行
-    result = str(random.randint(1, 101))
-    confidence = str(random.randint(1, 101))
-    emojis = getEmj() * 5  # 生成5个随机表情符号
+class ClockShow(PushButton):
+    def __init__(self, frame: QFrame, layout: QVBoxLayout):
+        super().__init__("Current Time", frame)
+        layout.addWidget(self)
 
-    predictResultInfo = [
-        " 识别结果: ??? \n 置信度: ??? ",
-        " 识别结果: {} \n置信度:{}% \n {}".format(result, confidence, emojis)
-    ]
-    return predictResultInfo
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_time)
+        self.timer.start(1000)  # 每秒更新一次
 
-print(predict_result())
+        self.update_time()
+
+    def update_time(self):
+        current_datetime = QDateTime.currentDateTime().toString('yyyy-MM-dd hh:mm:ss')
+        self.setText(current_datetime)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    frame = QFrame()
+    layout = QVBoxLayout()
+
+    # 添加一个伸展部件，使按钮固定在最下方
+    layout.addStretch()
+
+    clock = ClockShow(frame, layout)
+
+    frame.setLayout(layout)
+    frame.show()
+
+    sys.exit(app.exec_())

@@ -8,6 +8,8 @@ from qfluentwidgets import ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip
 from PyQt5.QtWidgets import QFileDialog
 import random
 from qfluentwidgets import FluentIcon as FIF
+
+from assembly.ClockShow import ClockShow
 from assembly.emoji import getEmj, getSadnessEmj
 
 
@@ -55,20 +57,21 @@ class DraggableImageLabel(ImageLabel):
             self.dragging = False
 
 
-class leftContent(QFrame):
+class _LeftContent():
     def __init__(self, frame: QFrame):
-        super().__init__(frame)
         self.leftPanel = frame
-        self.leftPanel.setMaximumWidth(250)
+        self.leftPanel.setMaximumWidth(500)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
-        self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, '加载图片 ', self.leftPanel)
+        self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
         self.resultInfo = " 识别结果: ??? \n 置信度: ??? "
         self.predictionResultBt = PushButton(FIF.CALENDAR, self.resultInfo, self.leftPanel)
-        self.predictionResultBt.setEnabled(False)
-
         self._addWidgets()
+        # 创建时间
+        ClockShow(self.leftPanel, self.leftLayout)
+        self.conntect()
 
-    def updatePredictResultInfo(self):
+
+    def _updatePredictResultInfo(self):
         inf_temp = random.randint(1, 101)
         inf_emj = getEmj(n=5)
         if inf_temp < 60:
@@ -77,7 +80,7 @@ class leftContent(QFrame):
         return self.resultInfo
 
     def setPredictResultInfo(self, inf):
-        self.updatePredictResultInfo()
+        self._updatePredictResultInfo()
         self.predictionResultBt.setText(self.resultInfo)
 
     def _addWidgets(self):
@@ -85,9 +88,13 @@ class leftContent(QFrame):
         self.leftLayout.addWidget(self.predictionResultBt)
 
 
-class rightContent(QFrame):
+    def conntect(self):
+        pass
+
+
+
+class _RightContent():
     def __init__(self, frame: QFrame):
-        super().__init__(frame)
         self.rightPanel = frame
         self.rightLayout = FlowLayout(self.rightPanel, needAni=True)
         self.imageLabel1 = DraggableImageLabel(self.rightPanel)
@@ -96,19 +103,20 @@ class rightContent(QFrame):
         self.imageLabel2.setCustomImage('resource/painting_girl.png')
         self.imageLabel1.setBorderRadius(10, 10, 10, 10)
         self.imageLabel2.setBorderRadius(10, 10, 10, 10)
-        self.addWidgets()
+        self._addWidgets()
 
-    def addWidgets(self):
+    def _addWidgets(self):
         self.rightLayout.addWidget(self.imageLabel1)
         self.rightLayout.addWidget(self.imageLabel2)
+
 
 class HomeInterface(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.hBoxLayout = QHBoxLayout(self)
         self.splitter = QSplitter()
-        self.leftRegion = leftContent(QFrame(self))
-        self.rightRegion = rightContent(QFrame(self))
+        self.leftRegion = _LeftContent(QFrame(self))
+        self.rightRegion = _RightContent(QFrame(self))
         self.setupUI()
         self.setObjectName('HomeInterface')
 
@@ -117,7 +125,6 @@ class HomeInterface(QFrame):
         self.splitter.addWidget(self.leftRegion.leftPanel)
         self.splitter.addWidget(self.rightRegion.rightPanel)
         self.hBoxLayout.addWidget(self.splitter)
-
         self.leftRegion.loadImage1Btn.clicked.connect(lambda:self.loadImage())
 
     def loadImage(self):

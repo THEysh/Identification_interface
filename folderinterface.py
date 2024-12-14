@@ -1,12 +1,11 @@
 # coding:utf-8
-from PyQt5.QtCore import Qt, QTimer, QEasingCurve
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFileDialog,
-                             QGridLayout, QSplitter)
+                             QSplitter)
 from PyQt5.QtGui import QPixmap, QResizeEvent
 from qfluentwidgets import (PrimaryPushButton, ImageLabel,
                             StrongBodyLabel, BodyLabel, SmoothScrollArea)
 from qfluentwidgets import FluentIcon as FIF
-import os
 from pathlib import Path
 from assembly.SmoothResizingScrollArea import SmoothResizingScrollArea
 
@@ -41,6 +40,8 @@ class AdaptiveImageLabel(ImageLabel):
         target_height = int(target_width * ratio)
         self.setFixedSize(target_width, target_height)
 
+class _LeftContent():
+    pass
 
 class FolderInterface(QFrame):
     def __init__(self, parent=None):
