@@ -33,7 +33,6 @@ class Window(FluentWindow):
         self.folderInterface = FolderInterface(self)
         self.settingInterface = Widget('Setting Interface', self)
         self.splashScreen = None
-
         self.load()
 
     def initNavigation(self):

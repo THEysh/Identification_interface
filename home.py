@@ -1,14 +1,13 @@
 # coding:utf-8
 from PIL.ImagePalette import random
-from PyQt5.QtCore import Qt, QPoint, QSize, QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
+from PyQt5.QtCore import Qt, QPoint, QEventLoop, QTimer
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
-from qfluentwidgets import ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip, FluentLabelBase, \
-    PrimaryPushButton
+from qfluentwidgets import ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip, PrimaryPushButton
 from PyQt5.QtWidgets import QFileDialog
 import random
-
-from emoji import get_emj
+from qfluentwidgets import FluentIcon as FIF
+from assembly.emoji import get_emj
 
 
 class DraggableImageLabel(ImageLabel):
@@ -33,7 +32,7 @@ class DraggableImageLabel(ImageLabel):
     def wheelEvent(self, event: QWheelEvent):
         # 保存当前位置
         current_pos = self.pos()
-        
+
         # 处理滚轮缩放
         if event.angleDelta().y() > 0:
             # 放大
@@ -41,17 +40,17 @@ class DraggableImageLabel(ImageLabel):
         else:
             # 缩小
             self.zoom_factor *= 0.9
-        
+
         # 限制缩放范围
         self.zoom_factor = max(0.1, min(self.zoom_factor, 5.0))
-        
+
         # 计算新的大小
         new_height = int(self.original_height * self.zoom_factor)
         new_width = int(new_height * self.original_pixmap.width() / self.original_pixmap.height())
-        
+
         # 设置新的大小
         self.setFixedSize(new_width, new_height)
-        
+
         # 恢复位置
         self.move(current_pos)
 
@@ -70,23 +69,23 @@ class DraggableImageLabel(ImageLabel):
     def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
             self.dragging = False
-from qfluentwidgets import FluentIcon as FIF
+
 
 class HomeInterface(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
         self.hBoxLayout = QHBoxLayout(self)
-
+        # 创建一个 QSplitter 并设置为水平方向
+        self.splitter = QSplitter()
         # 左侧面板
         self.leftPanel = QFrame(self)
-        self.leftPanel.setMaximumWidth(200)
-        self.leftLayout = QVBoxLayout(self.leftPanel)
-
+        self.leftPanel.setMaximumWidth(250)
+        self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         # 右侧面板
         self.rightPanel = QFrame(self)
         self.rightLayout = FlowLayout(self.rightPanel, needAni=True)
-
+        # self.rightLayout = QHBoxLayout(self.rightPanel)
         self.setupUI()
         self.setObjectName('HomeInterface')
 
@@ -94,33 +93,34 @@ class HomeInterface(QFrame):
     def setupUI(self):
         # 设置加载模型小卡片
         self.stateTooltip = None
+
         # 添加左侧按钮
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, '加载图片', self.leftPanel)
         self.inflabel = StrongBodyLabel("识别结果:???"+get_emj())
         self.leftLayout.addWidget(self.loadImage1Btn)
         self.leftLayout.addWidget(self.inflabel)
-        self.leftLayout.addStretch()
-        
+        # self.leftLayout.addStretch()
+
         # 创建两个图片标签
         self.imageLabel1 = DraggableImageLabel(self.rightPanel)
         self.imageLabel2 = DraggableImageLabel(self.rightPanel)
-        
+
         # 设置默认图片
         self.imageLabel1.setCustomImage('resource/painting_girl.png')
         self.imageLabel2.setCustomImage('resource/painting_girl.png')
-        
+
         # 设置圆角
         self.imageLabel1.setBorderRadius(10, 10, 10, 10)
         self.imageLabel2.setBorderRadius(10, 10, 10, 10)
-        
+
         # 添加图片到右侧布局
         self.rightLayout.addWidget(self.imageLabel1)
         self.rightLayout.addWidget(self.imageLabel2)
 
         # 将左右面板添加到主布局
-        self.hBoxLayout.addWidget(self.leftPanel)
-        self.hBoxLayout.addWidget(self.rightPanel, 1)
-        
+        self.splitter.addWidget(self.leftPanel)
+        self.splitter.addWidget(self.rightPanel)
+        self.hBoxLayout.addWidget(self.splitter)
         # 连接按钮信号
         self.loadImage1Btn.clicked.connect(lambda: self.loadImage())
 
@@ -140,13 +140,12 @@ class HomeInterface(QFrame):
     def predictedOutputs(self, file_path):
         self.ComputationDisplayCard()
         loop = QEventLoop(self)
-        QTimer.singleShot(1000, loop.quit)
+        QTimer.singleShot(1500, loop.quit)
         loop.exec()
         self.ComputationDisplayCard()
         self.imageLabel2.setCustomImage(file_path)
         self.imageLabel2.zoom_factor = 1.0  # 重置缩放因子
         self.inflabel.setText("识别结果: " + str(random.randint(1, 31)) +" "+get_emj())
-
 
     def ComputationDisplayCard(self):
         if self.stateTooltip:

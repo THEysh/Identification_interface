@@ -1,42 +1,41 @@
-# coding:utf-8
 import sys
-
-from PyQt5.QtCore import QEventLoop, QTimer, QSize
-from PyQt5.QtGui import QIcon, QColor
-from PyQt5.QtWidgets import QApplication
-from qfluentwidgets import SplashScreen
-from qframelesswindow import FramelessWindow, StandardTitleBar
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QScrollArea, QGridLayout, QLabel
+from PyQt5.QtCore import Qt
+from qfluentwidgets import FlowLayout
 
 
-class Demo(FramelessWindow):
+# 引入你的 FlowLayout 类
 
+
+class MyScrollArea(QScrollArea):
     def __init__(self):
         super().__init__()
-        self.resize(700, 600)
-        self.setWindowTitle('PyQt-Fluent-Widgets')
-        self.setWindowIcon(QIcon(':/qfluentwidgets/images/logo.png'))
+        self.initUI()
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.on_resize()
+    def on_resize(self):
+        current_size = self.size()
+        print(f"ScrollArea resized to: {current_size.width()} x {current_size.height()}")
 
-        # 1. 创建启动页面
-        self.splashScreen = SplashScreen(self.windowIcon(), self, enableShadow=False)
-        self.splashScreen.setIconSize(QSize(102, 102))
+class MyWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
 
-        # 2. 在创建其他子页面前先显示主界面
-        self.show()
+    def initUI(self):
+        # 创建一个外层布局来管理 QScrollArea
+        main_layout = QVBoxLayout(self)
 
-        # 3. 创建子界面
-        self.createSubInterface()
+        self.scroll_area = MyScrollArea()
+        main_layout.addWidget(self.scroll_area)
 
-        # 4. 隐藏启动页面
-        self.splashScreen.finish()
+        self.setLayout(main_layout)
+        self.setGeometry(100, 100, 400, 300)  # 设置窗口大小
 
-    def createSubInterface(self):
-        loop = QEventLoop(self)
-        QTimer.singleShot(3000, loop.quit)
-        loop.exec()
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = Demo()
-    w.show()
-    app.exec()
+    widget = MyWidget()
+    widget.show()
+
+    sys.exit(app.exec_())
