@@ -102,7 +102,6 @@ class rightContent(QFrame):
         self.rightLayout.addWidget(self.imageLabel1)
         self.rightLayout.addWidget(self.imageLabel2)
 
-
 class HomeInterface(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
