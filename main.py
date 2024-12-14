@@ -1,6 +1,5 @@
 # coding:utf-8
 import sys
-
 from PyQt5.QtCore import Qt, QUrl, QSize, QEventLoop, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout
@@ -9,7 +8,6 @@ from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme,
                             InfoBadgePosition, FluentBackgroundTheme, SplashScreen)
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
-
 from home import HomeInterface
 from folderinterface import FolderInterface
 
