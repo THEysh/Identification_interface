@@ -1,12 +1,13 @@
 # coding:utf-8
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFileDialog,
-                             QSplitter)
-from PyQt5.QtGui import QPixmap, QResizeEvent
+from PyQt5.QtCore import Qt, QTimer, QSize
+from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
+                             QSplitter, QLabel)
+from PyQt5.QtGui import QPixmap, QResizeEvent, QFontMetrics
 from qfluentwidgets import (PrimaryPushButton, ImageLabel,
-                            StrongBodyLabel, BodyLabel, SmoothScrollArea)
+                            SmoothScrollArea, FlowLayout, PushButton)
 from qfluentwidgets import FluentIcon as FIF
 from pathlib import Path
+from assembly.AutoResizePushButton import AutoResizePushButton
 from assembly.SmoothResizingScrollArea import SmoothResizingScrollArea
 
 
@@ -41,7 +42,33 @@ class AdaptiveImageLabel(ImageLabel):
         self.setFixedSize(target_width, target_height)
 
 class _LeftContent():
-    pass
+    def __init__(self, frame: QFrame):
+        self.MaximumWidth = 300
+        # 左侧面板
+        self.leftPanel = frame
+        self.leftPanel.setMaximumWidth(self.MaximumWidth)
+        self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
+        # 左侧按钮和标签
+        self.selectFolderBtn = PrimaryPushButton(FIF.FOLDER_ADD, ' 选择文件夹 ', self.leftPanel)
+        self.imageCountBtn = PushButton(FIF.PHOTO," 图片数量：0 ", self.leftPanel)
+        self.folderInfoBtn = AutoResizePushButton(self.MaximumWidth, FIF.FOLDER, " 未选择 ", self.leftPanel)
+        self._addWidget()
+
+
+    def _addWidget(self):
+        # 添加到左侧布局
+        self.leftLayout.addWidget(self.selectFolderBtn)
+        self.leftLayout.addWidget(self.folderInfoBtn )
+        self.leftLayout.addWidget(self.imageCountBtn )
+
+
+
+
+class _RightContent():
+    def __init__(self, frame: QFrame):
+        # 右侧面板
+        self.rightScrollArea = SmoothResizingScrollArea(frame)
+
 
 class FolderInterface(QFrame):
     def __init__(self, parent=None):
@@ -49,55 +76,35 @@ class FolderInterface(QFrame):
         self.hBoxLayout = QHBoxLayout(self)
         # 创建一个 QSplitter 并设置为水平方向
         self.splitter = QSplitter()
-        # 左侧面板
-        self.leftPanel = QFrame(self)
-        self.leftPanel.setMaximumWidth(250)
-        self.leftLayout = QVBoxLayout(self.leftPanel)
 
-        # 右侧面板
-        self.rightScrollArea = SmoothResizingScrollArea(self)
-
-        self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp', '.gif'}
-
-        self.setupUI()
+        self.leftRegion = _LeftContent(QFrame(self))
+        self.rightRegion = _RightContent(QFrame(self))
         self.setObjectName('FolderInterface')
 
+        self.setupUI()
         # 加载默认路径
         folder_path = "resource/some_img"
         self.loadimg(folder_path)
 
     def setupUI(self):
-        # 左侧按钮和标签
-        self.selectFolderBtn = PrimaryPushButton(FIF.FOLDER, '选择文件夹', self.leftPanel)
-        self.folderInfoLabel = StrongBodyLabel("文件夹：未选择")
-        self.imageCountLabel = BodyLabel("图片数量：0")
-        
-        # 添加到左侧布局
-        self.leftLayout.addWidget(self.selectFolderBtn)
-        self.leftLayout.addWidget(self.folderInfoLabel)
-        self.leftLayout.addWidget(self.imageCountLabel)
-        self.leftLayout.addStretch()
-
         # 设置主布局
-        self.splitter.addWidget(self.leftPanel)
-        self.splitter.addWidget(self.rightScrollArea)
+        self.splitter.addWidget(self.leftRegion.leftPanel)
+        self.splitter.addWidget(self.rightRegion.rightScrollArea)
         self.hBoxLayout.addWidget(self.splitter)
-
         # 连接信号
-        self.selectFolderBtn.clicked.connect(self.selectFolder)
+        self.leftRegion.selectFolderBtn.clicked.connect(self.selectFolder)
 
     def resizeEvent(self, event: QResizeEvent):
         """窗口大小改变时更新所有图片的大小"""
         super().resizeEvent(event)
 
-
     def updateAllImages(self):
         """更新所有图片的大小"""
-        self.rightScrollArea.updataScrollAreaItem()
+        self.rightRegion.rightScrollArea.updataScrollAreaItem()
 
     def clearImages(self):
         """清除所有现有的图片"""
-        self.rightScrollArea.clearScrollAreaItem()
+        self.rightRegion.rightScrollArea.clearScrollAreaItem()
 
     def selectFolder(self):
         folder_path = QFileDialog.getExistingDirectory(
@@ -106,7 +113,7 @@ class FolderInterface(QFrame):
             "./",
             QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
         )
-        
+        print(folder_path)
         if not folder_path:
             return
         self.loadimg(folder_path)
@@ -117,23 +124,23 @@ class FolderInterface(QFrame):
         self.clearImages()
 
         # 更新文件夹信息
-        folder_name = Path(folder_path).name
-        self.folderInfoLabel.setText(f"文件夹：{folder_name}")
+        print(folder_path)
+        self.leftRegion.folderInfoBtn.setText(f"{folder_path}")
 
         # 获取所有图片文件
         image_files = []
-        for ext in self.image_extensions:
+        for ext in self.rightRegion.rightScrollArea.image_extensions:
             image_files.extend(Path(folder_path).glob(f'*{ext}'))
 
         # 更新图片数量
-        self.imageCountLabel.setText(f"图片数量：{len(image_files)}")
+        self.leftRegion.imageCountBtn.setText(f"图片数量：{len(image_files)}")
 
         # 添加图片到网格布局
         for i, image_path in enumerate(image_files):
-            image_label = AdaptiveImageLabel(self.rightScrollArea.panel)
+            image_label = AdaptiveImageLabel(self.rightRegion.rightScrollArea.panel)
             image_label.setCustomImage(str(image_path))
             row = i // 2
             col = i % 2
-            self.rightScrollArea.layout.addWidget(image_label, row, col)
+            self.rightRegion.rightScrollArea.layout.addWidget(image_label, row, col)
 
         self.updateAllImages()

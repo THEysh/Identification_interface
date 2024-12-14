@@ -55,7 +55,6 @@ class Window(FluentWindow):
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
-
         self.splashScreen = SplashScreen(self.windowIcon(), self, enableShadow=False)
         titleBar = StandardTitleBar(self.splashScreen)
         titleBar.setIcon(self.windowIcon())
@@ -70,7 +69,7 @@ class Window(FluentWindow):
         
         # 3. 加载模型,模拟时间定时器
         loop = QEventLoop(self)
-        QTimer.singleShot(150, loop.quit)
+        QTimer.singleShot(200, loop.quit)
         loop.exec()
 
         # 4. 隐藏启动页面

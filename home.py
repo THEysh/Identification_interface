@@ -1,9 +1,9 @@
 # coding:utf-8
 from PIL.ImagePalette import random
 from PyQt5.QtCore import Qt, QPoint, QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter, QLayout
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
-from qfluentwidgets import ImageLabel, FlowLayout, StrongBodyLabel, StateToolTip, PrimaryPushButton, PillPushButton, \
+from qfluentwidgets import ImageLabel, FlowLayout, StateToolTip, PrimaryPushButton, PillPushButton, \
     PushButton
 from PyQt5.QtWidgets import QFileDialog
 import random
@@ -59,8 +59,9 @@ class DraggableImageLabel(ImageLabel):
 
 class _LeftContent():
     def __init__(self, frame: QFrame):
+        MaximumWidth = 300
         self.leftPanel = frame
-        self.leftPanel.setMaximumWidth(500)
+        self.leftPanel.setMaximumWidth(MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
         self.resultInfo = " 识别结果: ??? \n 置信度: ??? "

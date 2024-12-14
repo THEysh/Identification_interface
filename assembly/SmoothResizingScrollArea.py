@@ -19,6 +19,7 @@ class SmoothResizingScrollArea(SmoothScrollArea):
         self.setScrollAnimation(Qt.Vertical, 200, QEasingCurve.OutQuint)
         # 在setWidget后设置透明背景
         self.enableTransparentBackground()
+        self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp', '.gif'}
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
