@@ -16,10 +16,10 @@ class SmoothResizingScrollArea(SmoothScrollArea):
         # 设置滚动区域滚动条始终不显示
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # 自定义平滑滚动动画
-        self.setScrollAnimation(Qt.Vertical, 200, QEasingCurve.OutQuint)
+        self.setScrollAnimation(Qt.Vertical, 300, QEasingCurve.OutQuint)
         # 在setWidget后设置透明背景
         self.enableTransparentBackground()
-        self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp', '.gif'}
+        self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp'}
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

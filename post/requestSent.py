@@ -1,6 +1,10 @@
 import requests
 import json
 
+from PyQt5.QtCore import Qt
+from qfluentwidgets import InfoBar, InfoBarPosition
+
+
 class PredictionClient:
     def __init__(self, server_url):
         self.server_url = server_url
@@ -9,11 +13,13 @@ class PredictionClient:
         data = {"input_image": input_path,
                 "iou": iou,
                 "conf": conf}
-        response = requests.post(self.server_url, json=data)
+        try:
+            response = requests.post(self.server_url, json=data)
+        except Exception as e:
+            print(f"\033[93m警告: 服务器未响应\033[0m")
         if response.status_code == 200:
             return response.json()
-        else:
-            raise Exception(f"请求失败，状态码: {response.status_code}, 响应体: {response.text}")
+
 
 if __name__ == '__main__':
     # 实例化并使用该类

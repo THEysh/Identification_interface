@@ -1,8 +1,9 @@
 import random
-from PyQt5.QtCore import Qt
+import time
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QFrame, QSlider, QHBoxLayout, QVBoxLayout
-from qfluentwidgets import Slider, Flyout, InfoBarIcon, PushButton, ToolTipFilter, ToolTipPosition, BodyLabel, \
-    StrongBodyLabel
+from qfluentwidgets import Slider, StrongBodyLabel
 
 
 class DisplayNumericSlider(QFrame):
@@ -21,6 +22,10 @@ class DisplayNumericSlider(QFrame):
         # 为当前 QFrame 设置布局
         self.setLayout(_layout)
 
+    def updataSliderWidth(self,width):
+        print(time.time())
+        self.slider.setFixedWidth(width)
+
     def changevalue(self):
         v = self.slider.value()
         if v<=9:
@@ -28,8 +33,10 @@ class DisplayNumericSlider(QFrame):
         else:
             v = str(v)
         self.valueLabel.setText(self.name +":{}%".format(v))
+
     def getvalue(self):
         return self.slider.value()
+
     def addwidget(self,layout):
         layout.addWidget(self)
 

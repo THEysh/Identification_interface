@@ -1,12 +1,10 @@
 # coding:utf-8
 import os
-
-from PIL.ImagePalette import random
 from PyQt5.QtCore import Qt, QPoint, QEventLoop, QTimer
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter, QWidget, QSlider
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap, QColor
 from qfluentwidgets import ImageLabel, FlowLayout, StateToolTip, PrimaryPushButton, PillPushButton, \
-    PushButton, TextBrowser, HollowHandleStyle, Slider
+    PushButton, TextBrowser, HollowHandleStyle, Slider, InfoBar, InfoBarPosition
 from PyQt5.QtWidgets import QFileDialog
 import random
 from qfluentwidgets import FluentIcon as FIF
@@ -29,7 +27,7 @@ class DraggableImageLabel(ImageLabel):
 
     def setCustomImage(self, image_path: str):
         if not os.path.isfile(image_path):
-            print(f"The given path: '{image_path}' is not a valid file path.")
+            print(f"文件夹: '{image_path}' 路径失效.")
             return
         self.setImage(image_path)
         self.scaledToHeight(self.original_height)
@@ -65,14 +63,15 @@ class DraggableImageLabel(ImageLabel):
 
 class _LeftContent():
     def __init__(self, frame: QFrame):
-        MaximumWidth = 300
+        self.MaximumWidth = 300
         self.leftPanel = frame
-        self.leftPanel.setMaximumWidth(MaximumWidth)
+        self.leftPanel.setMinimumWidth(int(self.MaximumWidth*0.5))
+        self.leftPanel.setMaximumWidth(self.MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
-        self.slider1 = DisplayNumericSlider(int(MaximumWidth*0.7),name="iou  ",parent=self.leftPanel)
-        self.slider2 = DisplayNumericSlider(int(MaximumWidth * 0.7), name="conf", parent=self.leftPanel)
-        self.resultInfoCard = ResultDisplayCard(int(MaximumWidth*0.7),self.leftPanel)
+        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth*0.7),name="iou  ",parent=self.leftPanel)
+        self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.7), name="conf", parent=self.leftPanel)
+        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth*0.7),self.leftPanel)
         self.timeClock = ClockShow(self.leftPanel)
 
         self._addWidgets()
@@ -131,7 +130,19 @@ class HomeInterface(QFrame):
                               self.leftRegion.slider2.getvalue())
 
     def predictedOutputs(self, file_path, iou, conf):
-        res = self.client.predict(file_path, iou, conf)
+        try:
+            res = self.client.predict(file_path, iou, conf)
+        except Exception as e:
+            InfoBar.error(
+                title='错误',
+                content="服务器未响应",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.BOTTOM_LEFT,
+                duration=-1,  # won't disappear automatically
+                parent=self.leftRegion.leftPanel
+            )
+            return
         # 显示加载模型卡
         self.ComputationDisplayCard()
         # 模拟耗时

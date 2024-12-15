@@ -30,5 +30,4 @@ class AutoResizePushButton(PushButton):
 
     def setText(self, text):
         text = self.wrap_text(text)
-        print(text)
         super().setText(text)

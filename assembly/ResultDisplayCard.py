@@ -1,6 +1,8 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QWidget, QLayout
-from qfluentwidgets import TextBrowser, PushButton
+from qfluentwidgets import TextBrowser, PushButton, InfoBar, InfoBarPosition
 from assembly.autoResizePushButton import AutoResizePushButton
+from assembly.emoji import getEmj, getSadnessEmj
 
 
 class ResultDisplayCard():
@@ -8,8 +10,7 @@ class ResultDisplayCard():
         self.panel = frame
         self.rList = []
         self.widthLimit = widthLimit
-        self.originalList = ["识别结果: 🦄","置信度: 🦄","识别用时: 🦄","x坐标: 🦄",
-                             "y坐标: 🦄","宽: 🦄","高: 🦄","文件路径: 🦄"]
+        self._setOriginalList()
         self.rList.append(PushButton(self.originalList[0], self.panel))
         self.rList.append(PushButton(self.originalList[1], self.panel))
         self.rList.append(PushButton(self.originalList[2], self.panel))
@@ -19,7 +20,18 @@ class ResultDisplayCard():
         self.rList.append(PushButton(self.originalList[6], self.panel))
         self.rList.append(AutoResizePushButton(self.widthLimit, None, self.originalList[7], self.panel, widthLimitFactor=1.0, ))
 
+    def _setOriginalList(self):
+        self.originalList = ["识别结果: "+getEmj() + " ",
+                             "置信度: "+getEmj()+ " ",
+                             "识别用时: "+getEmj()+ " ",
+                             "x坐标: "+getEmj()+ " ",
+                             "y坐标: "+getEmj()+ " ",
+                             "宽: "+getEmj()+ " ",
+                             "高: "+getEmj()+ " ",
+                             "文件路径: "+getEmj()+ " ",
+                             ]
     def _showOriginal(self):
+        self._setOriginalList()
         for i in range(len(self.originalList)):
             self.rList[i].setText(self.originalList[i])
 
@@ -34,13 +46,24 @@ class ResultDisplayCard():
         ans.append(rectanglePos["width"])
         ans.append(rectanglePos["height"])
         ans.append(saveDir)
-        if len(ans)!=len(self.rList):
-            print("显示信息出现问题")
-            return
-        for i in range(len(self.rList)):
-            new_inf = self.rList[i].text().replace("🦄",str(ans[i]))
-            print(new_inf)
-            self.rList[i].setText(new_inf)
+        try:
+            for i in range(len(self.rList)):
+                tempStr = self.rList[i].text()
+                new_inf = self._replace_last_occurrence(tempStr, tempStr[-1], str(ans[i]))
+                self.rList[i].setText(new_inf)
+        except Exception as e:
+            InfoBar.warning(
+                title='警告',
+                content="模型返回数据"+ getSadnessEmj() +"\n匹配出现错误",
+                orient=Qt.Horizontal,
+                isClosable=True,  # disable close button
+                position=InfoBarPosition.BOTTOM_LEFT,
+                duration=20000,
+                parent=self.panel
+            )
+
+    def _replace_last_occurrence(self,s, old, new):
+        return s.rsplit(old, 1)[0] + new + s.rsplit(old, 1)[1]
 
     def addwidget(self,layout:QLayout):
         for r in self.rList:
