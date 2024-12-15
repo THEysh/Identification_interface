@@ -1,65 +1,21 @@
 # coding:utf-8
 import os
-from PyQt5.QtCore import Qt, QPoint, QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter, QWidget, QSlider
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap, QColor
-from qfluentwidgets import ImageLabel, FlowLayout, StateToolTip, PrimaryPushButton, PillPushButton, \
-    PushButton, TextBrowser, HollowHandleStyle, Slider, InfoBar, InfoBarPosition
+from argparse import Action
+
+from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
+from qfluentwidgets import ImageLabel, FlowLayout, StateToolTip, PrimaryPushButton, InfoBar, InfoBarPosition, RoundMenu
 from PyQt5.QtWidgets import QFileDialog
-import random
 from qfluentwidgets import FluentIcon as FIF
+
+from assembly.DraggableImageLabel import DraggableImageLabel
 from assembly.ResultDisplayCard import ResultDisplayCard
 from assembly.clockShow import ClockShow
 from assembly.displayNumericSlider import DisplayNumericSlider
-from assembly.emoji import getEmj, getSadnessEmj
+from assembly.common import getEmj, getSadnessEmj, mockDuration
+
 from post.requestSent import PredictionClient
-
-
-class DraggableImageLabel(ImageLabel):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.dragging = True
-        self.offset = QPoint()
-        self.zoom_factor = 1.0
-        self.original_height = 300
-        self.current_pos = QPoint(0, 0)
-        self.setScaledContents(True)
-
-    def setCustomImage(self, image_path: str):
-        if not os.path.isfile(image_path):
-            print(f"文件夹: '{image_path}' 路径失效.")
-            return
-        self.setImage(image_path)
-        self.scaledToHeight(self.original_height)
-        self.original_pixmap = QPixmap(image_path)
-
-    def wheelEvent(self, event: QWheelEvent):
-        current_pos = self.pos()
-        if event.angleDelta().y() > 0:
-            self.zoom_factor *= 1.1
-        else:
-            self.zoom_factor *= 0.9
-        self.zoom_factor = max(0.1, min(self.zoom_factor, 5.0))
-        new_height = int(self.original_height * self.zoom_factor)
-        new_width = int(new_height * self.original_pixmap.width() / self.original_pixmap.height())
-        self.setFixedSize(new_width, new_height)
-        self.move(current_pos)
-
-    def mousePressEvent(self, event: QMouseEvent):
-        if event.button() == Qt.LeftButton:
-            self.dragging = True
-            self.offset = event.pos()
-            self.raise_()
-
-    def mouseMoveEvent(self, event: QMouseEvent):
-        if self.dragging:
-            new_pos = self.mapToParent(event.pos() - self.offset)
-            self.move(new_pos)
-            self.current_pos = new_pos
-
-    def mouseReleaseEvent(self, event: QMouseEvent):
-        if event.button() == Qt.LeftButton:
-            self.dragging = False
 
 class _LeftContent():
     def __init__(self, frame: QFrame):
@@ -73,7 +29,6 @@ class _LeftContent():
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.7), name="conf", parent=self.leftPanel)
         self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth*0.7),self.leftPanel)
         self.timeClock = ClockShow(self.leftPanel)
-
         self._addWidgets()
 
     def _addWidgets(self):
@@ -129,6 +84,7 @@ class HomeInterface(QFrame):
         self.predictedOutputs(file_path, self.leftRegion.slider1.getvalue(),
                               self.leftRegion.slider2.getvalue())
 
+
     def predictedOutputs(self, file_path, iou, conf):
         try:
             res = self.client.predict(file_path, iou, conf)
@@ -146,9 +102,7 @@ class HomeInterface(QFrame):
         # 显示加载模型卡
         self.ComputationDisplayCard()
         # 模拟耗时
-        loop = QEventLoop(self)
-        QTimer.singleShot(1500, loop.quit)
-        loop.exec()
+        mockDuration(self.leftRegion.leftPanel)
         saveDir, rectanglePosDict, scores, classes, inferenceTime = (res["save_dir"],
                                                                      res["rectangle_pos"],
                                                                      res["scores"],
@@ -160,7 +114,6 @@ class HomeInterface(QFrame):
         # 加载图片
         self.rightRegion.imageLabel2.setCustomImage(saveDir)
         self.rightRegion.imageLabel2.zoom_factor = 1.0
-
 
     def ComputationDisplayCard(self):
         if self.stateTooltip:
