@@ -1,4 +1,6 @@
 # coding:utf-8
+import os
+
 from PIL.ImagePalette import random
 from PyQt5.QtCore import Qt, QPoint, QEventLoop, QTimer
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter, QWidget, QSlider
@@ -8,11 +10,11 @@ from qfluentwidgets import ImageLabel, FlowLayout, StateToolTip, PrimaryPushButt
 from PyQt5.QtWidgets import QFileDialog
 import random
 from qfluentwidgets import FluentIcon as FIF
-
 from assembly.ResultDisplayCard import ResultDisplayCard
 from assembly.clockShow import ClockShow
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.emoji import getEmj, getSadnessEmj
+from post.requestSent import PredictionClient
 
 
 class DraggableImageLabel(ImageLabel):
@@ -26,6 +28,9 @@ class DraggableImageLabel(ImageLabel):
         self.setScaledContents(True)
 
     def setCustomImage(self, image_path: str):
+        if not os.path.isfile(image_path):
+            print(f"The given path: '{image_path}' is not a valid file path.")
+            return
         self.setImage(image_path)
         self.scaledToHeight(self.original_height)
         self.original_pixmap = QPixmap(image_path)
@@ -65,24 +70,12 @@ class _LeftContent():
         self.leftPanel.setMaximumWidth(MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
-        self.slider1 = DisplayNumericSlider(int(MaximumWidth*0.7),name="iou",parent=self.leftPanel)
+        self.slider1 = DisplayNumericSlider(int(MaximumWidth*0.7),name="iou  ",parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(MaximumWidth * 0.7), name="conf", parent=self.leftPanel)
-        self.resultInfoCard = ResultDisplayCard(self.leftPanel)
+        self.resultInfoCard = ResultDisplayCard(int(MaximumWidth*0.7),self.leftPanel)
         self.timeClock = ClockShow(self.leftPanel)
 
         self._addWidgets()
-
-    def _updatePredictResultInfo(self):
-        inf_temp = random.randint(1, 101)
-        inf_emj = getEmj(n=5)
-        if inf_temp < 60:
-            inf_emj = getSadnessEmj(n=5)
-        self.resultInfo = " 识别结果: {} \n置信度:{}% \n {}".format(str(random.randint(1, 101)), str(inf_temp), inf_emj)
-        return self.resultInfo
-
-    def setPredictResultInfo(self, inf):
-        self._updatePredictResultInfo()
-        pass
 
     def _addWidgets(self):
         self.leftLayout.addWidget(self.loadImage1Btn)
@@ -107,10 +100,10 @@ class _RightContent():
         self.rightLayout.addWidget(self.imageLabel1)
         self.rightLayout.addWidget(self.imageLabel2)
 
-
 class HomeInterface(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, client:PredictionClient, parent=None):
         super().__init__(parent=parent)
+        self.client = client
         self.hBoxLayout = QHBoxLayout(self)
         self.splitter = QSplitter()
         self.leftRegion = _LeftContent(QFrame(self))
@@ -130,22 +123,33 @@ class HomeInterface(QFrame):
             self,
             f"选择一张图片进行预测",
             "./",
-            "Images (*.png *.jpg *.jpeg *.bmp *.gif)"
+            "Images (*.png *.jpg *.jpeg *.bmp)"
         )
         if len(file_path) == 0: return
         self.rightRegion.imageLabel1.setCustomImage(file_path)
-        self.rightRegion.imageLabel1.zoom_factor = 1.0
-        self.predictedOutputs(file_path)
+        self.predictedOutputs(file_path, self.leftRegion.slider1.getvalue(),
+                              self.leftRegion.slider2.getvalue())
 
-    def predictedOutputs(self, file_path):
+    def predictedOutputs(self, file_path, iou, conf):
+        res = self.client.predict(file_path, iou, conf)
+        # 显示加载模型卡
         self.ComputationDisplayCard()
+        # 模拟耗时
         loop = QEventLoop(self)
         QTimer.singleShot(1500, loop.quit)
         loop.exec()
+        saveDir, rectanglePosDict, scores, classes, inferenceTime = (res["save_dir"],
+                                                                     res["rectangle_pos"],
+                                                                     res["scores"],
+                                                                     res["classes"],
+                                                                     res["inference_time"])
+        self.leftRegion.resultInfoCard.show(saveDir, rectanglePosDict, scores, classes, inferenceTime)
+        # 显示加载模型卡-完成
         self.ComputationDisplayCard()
-        self.rightRegion.imageLabel2.setCustomImage(file_path)
+        # 加载图片
+        self.rightRegion.imageLabel2.setCustomImage(saveDir)
         self.rightRegion.imageLabel2.zoom_factor = 1.0
-        self.leftRegion.setPredictResultInfo(None)
+
 
     def ComputationDisplayCard(self):
         if self.stateTooltip:

@@ -22,8 +22,14 @@ class DisplayNumericSlider(QFrame):
         self.setLayout(_layout)
 
     def changevalue(self):
-        self.valueLabel.setText(self.name +":{}%".format(self.slider.value()))
-
+        v = self.slider.value()
+        if v<=9:
+            v = "0" + str(v)
+        else:
+            v = str(v)
+        self.valueLabel.setText(self.name +":{}%".format(v))
+    def getvalue(self):
+        return self.slider.value()
     def addwidget(self,layout):
         layout.addWidget(self)
 

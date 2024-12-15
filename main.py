@@ -10,7 +10,10 @@ from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 from home import HomeInterface
 from foldeRinterface import FolderInterface
+from post.requestSent import PredictionClient
 
+
+PORT = 8000
 
 class Widget(QFrame):
     def __init__(self, text: str, parent=None):
@@ -27,7 +30,8 @@ class Window(FluentWindow):
     def __init__(self):
         super().__init__()
         # create sub interface
-        self.homeInterface = HomeInterface(self)
+        self.postClient = PredictionClient("http://127.0.0.1:{}/predict".format(PORT))
+        self.homeInterface = HomeInterface(self.postClient, self)
         self.folderInterface = FolderInterface(self)
         self.settingInterface = Widget('Setting Interface', self)
         self.splashScreen = None

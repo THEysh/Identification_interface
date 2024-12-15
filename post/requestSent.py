@@ -5,8 +5,10 @@ class PredictionClient:
     def __init__(self, server_url):
         self.server_url = server_url
 
-    def predict(self, input_path):
-        data = {"input_image": input_path}
+    def predict(self, input_path, iou=0.6, conf=0.6):
+        data = {"input_image": input_path,
+                "iou": iou,
+                "conf": conf}
         response = requests.post(self.server_url, json=data)
         if response.status_code == 200:
             return response.json()

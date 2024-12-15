@@ -113,7 +113,6 @@ class FolderInterface(QFrame):
             "./",
             QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
         )
-        print(folder_path)
         if not folder_path:
             return
         self.loadimg(folder_path)
