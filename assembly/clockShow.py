@@ -5,10 +5,9 @@ from qfluentwidgets import PushButton
 from qfluentwidgets import FluentIcon as FIF
 
 class ClockShow(PushButton):
-    def __init__(self, frame:QFrame, layout:QLayout):
+    def __init__(self, frame:QFrame):
         super().__init__(frame)
         self.setIcon(FIF.TILES)
-        layout.addWidget(self)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)  # 每秒更新一次

@@ -1,15 +1,17 @@
 # coding:utf-8
 from PIL.ImagePalette import random
 from PyQt5.QtCore import Qt, QPoint, QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter, QWidget, QSlider
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QPixmap, QColor
 from qfluentwidgets import ImageLabel, FlowLayout, StateToolTip, PrimaryPushButton, PillPushButton, \
-    PushButton
+    PushButton, TextBrowser, HollowHandleStyle, Slider
 from PyQt5.QtWidgets import QFileDialog
 import random
 from qfluentwidgets import FluentIcon as FIF
 
-from assembly.ClockShow import ClockShow
+from assembly.ResultDisplayCard import ResultDisplayCard
+from assembly.clockShow import ClockShow
+from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.emoji import getEmj, getSadnessEmj
 
 
@@ -56,7 +58,6 @@ class DraggableImageLabel(ImageLabel):
         if event.button() == Qt.LeftButton:
             self.dragging = False
 
-
 class _LeftContent():
     def __init__(self, frame: QFrame):
         MaximumWidth = 300
@@ -64,13 +65,12 @@ class _LeftContent():
         self.leftPanel.setMaximumWidth(MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
-        self.resultInfo = " 识别结果: ??? \n 置信度: ??? "
-        self.predictionResultBt = PushButton(FIF.CALENDAR, self.resultInfo, self.leftPanel)
-        self._addWidgets()
-        # 创建时间
-        ClockShow(self.leftPanel, self.leftLayout)
-        self.conntect()
+        self.slider1 = DisplayNumericSlider(int(MaximumWidth*0.7),name="iou",parent=self.leftPanel)
+        self.slider2 = DisplayNumericSlider(int(MaximumWidth * 0.7), name="conf", parent=self.leftPanel)
+        self.resultInfoCard = ResultDisplayCard(self.leftPanel)
+        self.timeClock = ClockShow(self.leftPanel)
 
+        self._addWidgets()
 
     def _updatePredictResultInfo(self):
         inf_temp = random.randint(1, 101)
@@ -82,17 +82,14 @@ class _LeftContent():
 
     def setPredictResultInfo(self, inf):
         self._updatePredictResultInfo()
-        self.predictionResultBt.setText(self.resultInfo)
+        pass
 
     def _addWidgets(self):
         self.leftLayout.addWidget(self.loadImage1Btn)
-        self.leftLayout.addWidget(self.predictionResultBt)
-
-
-    def conntect(self):
-        pass
-
-
+        self.slider1.addwidget(self.leftLayout)
+        self.slider2.addwidget(self.leftLayout)
+        self.resultInfoCard.addwidget(self.leftLayout)
+        self.leftLayout.addWidget(self.timeClock)
 
 class _RightContent():
     def __init__(self, frame: QFrame):

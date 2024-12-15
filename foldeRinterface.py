@@ -7,8 +7,8 @@ from qfluentwidgets import (PrimaryPushButton, ImageLabel,
                             SmoothScrollArea, FlowLayout, PushButton)
 from qfluentwidgets import FluentIcon as FIF
 from pathlib import Path
-from assembly.AutoResizePushButton import AutoResizePushButton
-from assembly.SmoothResizingScrollArea import SmoothResizingScrollArea
+from assembly.autoResizePushButton import AutoResizePushButton
+from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
 
 
 class AdaptiveImageLabel(ImageLabel):

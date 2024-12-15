@@ -7,13 +7,13 @@ from typing import Union
 
 
 class AutoResizePushButton(PushButton):
-    def __init__(self,widthLimit:int, icon: FluentIconBase, text: str, parent: QWidget = None):
+    def __init__(self, widthLimit:int, icon: FluentIconBase, text: str, parent: QWidget = None, widthLimitFactor=0.75):
         super().__init__(parent=parent)
         super().setText(text)
         super().setIcon(icon)
         self.widthLimit = widthLimit
         self.textLen = 0
-        self.widthLimitFactor = 0.6
+        self.widthLimitFactor = widthLimitFactor
     def wrap_text(self, text:str):
         metrics = QFontMetrics(self.font())
         res = ""

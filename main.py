@@ -9,7 +9,7 @@ from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme,
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 from home import HomeInterface
-from folderinterface import FolderInterface
+from foldeRinterface import FolderInterface
 
 
 class Widget(QFrame):
