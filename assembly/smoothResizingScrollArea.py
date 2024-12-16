@@ -6,7 +6,9 @@ from qfluentwidgets import SmoothScrollArea
 class SmoothResizingScrollArea(SmoothScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent)
-
+        # customize scroll animation
+        self.setScrollAnimation(Qt.Vertical, 400, QEasingCurve.OutQuint)
+        self.setScrollAnimation(Qt.Horizontal, 400, QEasingCurve.OutQuint)
     def resizeEvent(self, event):
         super().resizeEvent(event)
         QTimer.singleShot(0, self.updataScrollAreaItem)

@@ -1,7 +1,8 @@
 # coding:utf-8
+import copy
 import time
 
-from PyQt5.QtCore import Qt, QTimer, QSize, QEasingCurve, QEventLoop
+from PyQt5.QtCore import Qt, QTimer, QSize, QEasingCurve, QEventLoop, QThread, pyqtSignal, QCoreApplication
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QLabel, QGridLayout)
 from PyQt5.QtGui import QPixmap, QResizeEvent, QFontMetrics
@@ -57,17 +58,14 @@ class _RightContent(SmoothResizingScrollArea):
         self.panel = QFrame()
         self.layout = QGridLayout(self.panel)
         self.layout.setSpacing(10)
-        self.layout.setContentsMargins(5, 5, 5, 5)
+        self.layout.setContentsMargins(10, 10, 10, 10)
         self.setWidget(self.panel)
         self.setWidgetResizable(True)
         # 设置滚动区域滚动条始终不显示
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # 自定义平滑滚动动画
-        self.setScrollAnimation(Qt.Vertical, 400, QEasingCurve.OutQuint)
         # 在setWidget后设置透明背景
         self.enableTransparentBackground()
         self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp'}
-
 
 class FolderInterface(QFrame):
     def __init__(self, parent=None):
@@ -81,7 +79,7 @@ class FolderInterface(QFrame):
         self.setObjectName('FolderInterface')
         self.setupUI()
         # 加载默认路径
-        folder_path = "resource/some_img"
+        folder_path = "./resource/some_img"
         self.loadimg(folder_path)
 
     def setupUI(self):
@@ -105,17 +103,17 @@ class FolderInterface(QFrame):
         self.rightRegion.clearScrollAreaItem()
 
     def selectFolder(self):
-        folder_path = QFileDialog.getExistingDirectory(
+        folderPath = QFileDialog.getExistingDirectory(
             self,
             "选择图片文件夹",
             "./",
             QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
         )
-        if not folder_path:
+        if not folderPath:
             return
-        self.loadimg(folder_path)
+        self.loadimg(folderPath)
 
-    def loadimg(self,folder_path):
+    def loadimg(self, folder_path):
         # 清除现有图片
         self.clearImages()
         # 更新文件夹信息
@@ -124,21 +122,11 @@ class FolderInterface(QFrame):
         image_files = []
         for ext in self.rightRegion.image_extensions:
             image_files.extend(Path(folder_path).glob(f'*{ext}'))
-
         # 更新图片数量
         self.leftRegion.imageCountBtn.setText(f"图片数量：{len(image_files)}")
-        # 添加图片到网格布局
         for i, image_path in enumerate(image_files):
             imageLabel1 = AdaptiveImageLabel(self.rightRegion)
             imageLabel1.setCustomImage(str(image_path))
             row = i
             col = 0
             self.rightRegion.layout.addWidget(imageLabel1, row, col)
-        # for i, image_path in enumerate(image_files):
-        #     if i>4:break
-        #     imageLabel1 = AdaptiveImageLabel(self.rightRegion)
-        #     imageLabel1.setCustomImage(str(image_path))
-        #     row = i
-        #     col = 1
-        #     self.rightRegion.layout.addWidget(imageLabel1, row, col)
-        self.updateAllImages()

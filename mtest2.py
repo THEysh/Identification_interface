@@ -1,112 +1,70 @@
-# coding:utf-8
 import sys
-
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout
-
-from qfluentwidgets import (PushButton, TeachingTip, TeachingTipTailPosition, InfoBarIcon, setTheme, Theme,
-                            TeachingTipView, FlyoutViewBase, BodyLabel, PrimaryPushButton, PopupTeachingTip)
+import threading
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
 
 
-class CustomFlyoutView(FlyoutViewBase):
-
-    def __init__(self, parent=None):
+# 异步加载图片的线程
+class LoadImageThread(QThread):
+    image_loaded = pyqtSignal(QPixmap)
+    def __init__(self, path, parent=None):
         super().__init__(parent)
-        self.vBoxLayout = QVBoxLayout(self)
-        self.label = BodyLabel(
-            '这是一场「试炼」，我认为这就是一场为了战胜过去的「试炼」，\n只有战胜了那些幼稚的过去，人才能有所成长。')
-        self.button = PrimaryPushButton('Action')
+        self.path = path
+    def run(self):
+        # 加载图片
+        pixmap = QPixmap(self.path)
+        if not pixmap.isNull():
+            # 图片加载成功，触发信号
+            self.image_loaded.emit(pixmap)
+        else:
+            # 图片加载失败，可以触发一个错误信号
+            print(f"Failed to load image from {self.path}")
 
-        self.button.setFixedWidth(140)
-        self.vBoxLayout.setSpacing(12)
-        self.vBoxLayout.setContentsMargins(20, 16, 20, 16)
-        self.vBoxLayout.addWidget(self.label)
-        self.vBoxLayout.addWidget(self.button)
+# 主窗口类
+class MainWindow(QMainWindow):
+    def __init__(self, image_path, parent=None):
+        super().__init__(parent)
+        self.image_path = image_path
+        self.initUI()
+        self.start_loading()
 
-    def paintEvent(self, e):
-        pass
+    def initUI(self):
+        self.setWindowTitle("Async Image Loader")
+        self.setGeometry(100, 100, 400, 300)
 
+        # 创建一个QLabel用来显示图片
+        self.image_label = QLabel(self)
+        self.image_label.setAlignment(Qt.AlignCenter)
 
-class Demo(QWidget):
+        # 创建一个布局，并添加QLabel
+        layout = QVBoxLayout()
+        layout.addWidget(self.image_label)
 
-    def __init__(self):
-        super().__init__()
-        # setTheme(Theme.DARK)
-        # self.setStyleSheet("Demo{background: rgb(32, 32, 32)}")
+        # 创建一个中心窗口，并设置布局
+        central_widget = QWidget()
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
 
-        self.hBoxLayout = QHBoxLayout(self)
-        self.button1 = PushButton('Top', self)
-        self.button2 = PushButton('Bottom', self)
-        self.button3 = PushButton('Custom', self)
+    def start_loading(self):
+        # 创建并启动加载图片的线程
+        self.load_thread = LoadImageThread(self.image_path)
+        self.load_thread.image_loaded.connect(self.display_image)
+        self.load_thread.start()
 
-        self.resize(700, 500)
-        self.button1.setFixedWidth(150)
-        self.button2.setFixedWidth(150)
-        self.button3.setFixedWidth(150)
-        self.hBoxLayout.addWidget(self.button2, 0, Qt.AlignHCenter)
-        self.hBoxLayout.addWidget(self.button1, 0, Qt.AlignHCenter)
-        self.hBoxLayout.addWidget(self.button3, 0, Qt.AlignHCenter)
-        self.button1.clicked.connect(self.showTopTip)
-        self.button2.clicked.connect(self.showBottomTip)
-        self.button3.clicked.connect(self.showCustomTip)
+    def display_image(self, pixmap):
+        # 在主线程中显示图片
+        self.image_label.setPixmap(pixmap)
+        self.image_label.adjustSize()
 
-    def showTopTip(self):
-        position = TeachingTipTailPosition.BOTTOM
-        view = TeachingTipView(
-            icon=None,
-            title='Lesson 5',
-            content="最短的捷径就是绕远路，绕远路才是我的最短捷径。",
-            image='resource/Gyro.jpg',
-            # image='resource/boqi.gif',
-            isClosable=True,
-            tailPosition=position,
-        )
-
-        # add widget to view
-        button = PushButton('Action')
-        button.setFixedWidth(120)
-        view.addWidget(button, align=Qt.AlignRight)
-
-        w = TeachingTip.make(
-            target=self.button1,
-            view=view,
-            duration=-1,
-            tailPosition=position,
-            parent=self
-        )
-        view.closed.connect(w.close)
-
-    def showBottomTip(self):
-        TeachingTip.create(
-            target=self.button2,
-            icon=InfoBarIcon.SUCCESS,
-            title='Lesson 4',
-            content="表达敬意吧，表达出敬意，然后迈向回旋的另一个全新阶段！",
-            isClosable=True,
-            tailPosition=TeachingTipTailPosition.TOP,
-            duration=2000,
-            parent=self
-        )
-
-    def showCustomTip(self):
-        # TeachingTip.make(
-        PopupTeachingTip.make(
-            target=self.button3,
-            view=CustomFlyoutView(),
-            tailPosition=TeachingTipTailPosition.RIGHT,
-            duration=2000,
-            parent=self
-        )
-
-
-if __name__ == '__main__':
-    # enable dpi scale
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
-
+# 主函数
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = Demo()
-    w.show()
-    app.exec_()
+
+    # 图片路径
+    image_path = "resource/painting_girl.png"
+
+    mainWin = MainWindow(image_path)
+    mainWin.show()
+
+    sys.exit(app.exec_())
