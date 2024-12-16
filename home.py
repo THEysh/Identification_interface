@@ -1,6 +1,5 @@
 # coding:utf-8
-
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QMutex
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
 from qfluentwidgets import FlowLayout, StateToolTip, PrimaryPushButton, InfoBar, InfoBarPosition
 from PyQt5.QtWidgets import QFileDialog
@@ -14,7 +13,7 @@ from post.requestSent import PredictionClient
 
 class _LeftContent():
     def __init__(self, frame: QFrame):
-        self.MaximumWidth = 300
+        self.MaximumWidth = 350
         self.leftPanel = frame
         self.leftPanel.setMinimumWidth(int(self.MaximumWidth*0.5))
         self.leftPanel.setMaximumWidth(self.MaximumWidth)

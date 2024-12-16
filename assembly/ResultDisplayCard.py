@@ -1,8 +1,8 @@
 import time
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QWidget, QLayout
-from qfluentwidgets import TextBrowser, PushButton, InfoBar, InfoBarPosition
+from PyQt5.QtWidgets import QFrame, QLayout
+from qfluentwidgets import PushButton, InfoBar, InfoBarPosition
 from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.common import getEmj, getSadnessEmj
 
