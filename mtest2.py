@@ -1,70 +1,57 @@
 import sys
-import threading
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import QThread, pyqtSignal
+import time
 
+class ImageLoaderThread(QThread):
+    image_loaded = pyqtSignal(QImage)
+    def __init__(self, file_path):
+        super().__init__()
+        self.file_path = file_path
 
-# 异步加载图片的线程
-class LoadImageThread(QThread):
-    image_loaded = pyqtSignal(QPixmap)
-    def __init__(self, path, parent=None):
-        super().__init__(parent)
-        self.path = path
     def run(self):
-        # 加载图片
-        pixmap = QPixmap(self.path)
-        if not pixmap.isNull():
-            # 图片加载成功，触发信号
-            self.image_loaded.emit(pixmap)
-        else:
-            # 图片加载失败，可以触发一个错误信号
-            print(f"Failed to load image from {self.path}")
+        time.sleep(1)  # 模拟加载延迟
+        try:
+            image = QImage(self.file_path)
+            if not image.isNull():
+                self.image_loaded.emit(image)
+            else:
+                print("Failed to load image")
+        except Exception as e:
+            print(f"Error: {e}")
 
-# 主窗口类
 class MainWindow(QMainWindow):
-    def __init__(self, image_path, parent=None):
-        super().__init__(parent)
-        self.image_path = image_path
-        self.initUI()
-        self.start_loading()
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("异步加载本地图片示例")
+        self.setGeometry(100, 100, 800, 600)
 
-    def initUI(self):
-        self.setWindowTitle("Async Image Loader")
-        self.setGeometry(100, 100, 400, 300)
+        self.label = QLabel(self)
+        self.label.setGeometry(100, 100, 600, 400)
 
-        # 创建一个QLabel用来显示图片
-        self.image_label = QLabel(self)
-        self.image_label.setAlignment(Qt.AlignCenter)
+        self.button = QPushButton("加载图片", self)
+        self.button.setGeometry(350, 50, 100, 30)
+        self.button.clicked.connect(self.load_image)
 
-        # 创建一个布局，并添加QLabel
-        layout = QVBoxLayout()
-        layout.addWidget(self.image_label)
+        self.image_loader = None
 
-        # 创建一个中心窗口，并设置布局
-        central_widget = QWidget()
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
+    def load_image(self):
+        if self.image_loader is not None and self.image_loader.isRunning():
+            return
 
-    def start_loading(self):
-        # 创建并启动加载图片的线程
-        self.load_thread = LoadImageThread(self.image_path)
-        self.load_thread.image_loaded.connect(self.display_image)
-        self.load_thread.start()
+        file_path = "resource/painting_girl.png"  # 替换为你的本地图片路径
+        self.image_loader = ImageLoaderThread(file_path)
+        self.image_loader.image_loaded.connect(self.show_image)
+        self.image_loader.start()
 
-    def display_image(self, pixmap):
-        # 在主线程中显示图片
-        self.image_label.setPixmap(pixmap)
-        self.image_label.adjustSize()
+    def show_image(self, image):
+        pixmap = QPixmap.fromImage(image)
+        self.label.setPixmap(pixmap)
+        self.label.setScaledContents(True)
 
-# 主函数
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-    # 图片路径
-    image_path = "resource/painting_girl.png"
-
-    mainWin = MainWindow(image_path)
-    mainWin.show()
-
+    window = MainWindow()
+    window.show()
     sys.exit(app.exec_())

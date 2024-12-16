@@ -1,3 +1,5 @@
+import time
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QWidget, QLayout
 from qfluentwidgets import TextBrowser, PushButton, InfoBar, InfoBarPosition
@@ -57,7 +59,7 @@ class ResultDisplayCard():
                 content="模型返回数据"+ getSadnessEmj() +"\n匹配出现错误",
                 orient=Qt.Horizontal,
                 isClosable=True,  # disable close button
-                position=InfoBarPosition.BOTTOM_LEFT,
+                position=InfoBarPosition.TOP_LEFT,
                 duration=20000,
                 parent=self.panel
             )

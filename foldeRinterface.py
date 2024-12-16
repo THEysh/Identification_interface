@@ -5,7 +5,7 @@ import time
 from PyQt5.QtCore import Qt, QTimer, QSize, QEasingCurve, QEventLoop, QThread, pyqtSignal, QCoreApplication
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QLabel, QGridLayout)
-from PyQt5.QtGui import QPixmap, QResizeEvent, QFontMetrics
+from PyQt5.QtGui import QPixmap, QResizeEvent, QFontMetrics, QImage
 from qfluentwidgets import (PrimaryPushButton, ImageLabel,
                             SmoothScrollArea, FlowLayout, PushButton, FlyoutView, Flyout, InfoBar, InfoBarPosition,
                             SwitchButton, TogglePushButton)
@@ -124,9 +124,28 @@ class FolderInterface(QFrame):
             image_files.extend(Path(folder_path).glob(f'*{ext}'))
         # 更新图片数量
         self.leftRegion.imageCountBtn.setText(f"图片数量：{len(image_files)}")
-        for i, image_path in enumerate(image_files):
-            imageLabel1 = AdaptiveImageLabel(self.rightRegion)
-            imageLabel1.setCustomImage(str(image_path))
-            row = i
-            col = 0
-            self.rightRegion.layout.addWidget(imageLabel1, row, col)
+
+        self.thread = _ImageLoaderThread(image_files, parent=None)
+        self.thread.varSignalConnector.connect(self.addImageLabel)
+        self.thread.start()
+
+    def addImageLabel(self, pixmap:QPixmap, index:int):
+        imageLabel = AdaptiveImageLabel(self.rightRegion)  # Pass parent to keep the UI structure
+        imageLabel.setPixmap(pixmap)
+        row = index
+        col = 0
+        self.rightRegion.layout.addWidget(imageLabel, row, col)
+
+
+class _ImageLoaderThread(QThread):
+    varSignalConnector = pyqtSignal(QPixmap, int)
+    def __init__(self, image_files, parent=None):
+        super().__init__(parent)
+        self.image_files = image_files
+    def run(self):
+        for i, image_path in enumerate(self.image_files):
+            pixmap = QPixmap(str(image_path))
+            # 延迟加载，避免卡顿
+            time.sleep(0.01)
+            self.varSignalConnector.emit(pixmap, i)
+

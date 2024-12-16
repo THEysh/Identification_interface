@@ -18,41 +18,42 @@ app.use(bodyParser.json());
 
 // 模拟的预测函数
 const predictImage = (inputImagePath) => {
-  // 这里可以调用你的图像处理和预测逻辑
-  // 例如，使用某个库来处理图像并返回预测结果
-  return {
-    "save_dir":  inputImagePath,
-    "rectangle_pos": {
-      "x": (Math.random() * 1000).toFixed(3),
-      "y":  (Math.random() * 1000).toFixed(3),
-      "width":  (Math.random() * 100).toFixed(3),
-      "height":  (Math.random() * 100).toFixed(3)
-    },
-    "scores":  (Math.random() * 100).toFixed(2) + "%" ,
-    "classes": 2,
-    "inference_time":  (Math.random() * 10).toFixed(2) + "s"
-  };
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        "save_dir": inputImagePath,
+        "rectangle_pos": {
+          "x": (Math.random() * 1000).toFixed(3),
+          "y": (Math.random() * 1000).toFixed(3),
+          "width": (Math.random() * 100).toFixed(3),
+          "height": (Math.random() * 100).toFixed(3)
+        },
+        "scores": (Math.random() * 100).toFixed(2) + "%",
+        "classes": 2,
+        "inference_time": (Math.random() * 10).toFixed(2) + "s"
+      });
+    }, 1000); // 延时
+  });
 };
 
 // 处理 POST 请求的路由
-app.post('/predict', (req, res) => {
+app.post('/predict', async (req, res) => {
   const { input_image } = req.body;
 
   if (!input_image) {
     return res.status(400).json({ error: 'Input image path is required' });
   }
 
-  // 检查输入的图像路径是否有效
-  const inputImagePath = path.resolve(input_image);
-  if (!fs.existsSync(inputImagePath)) {
-    return res.status(400).json({ error: 'Input image does not exist' });
+  try {
+    // 调用预测函数
+    const predictionResult = await predictImage(input_image);
+
+    // 返回预测结果
+    res.json(predictionResult);
+  } catch (error) {
+    console.error('Error during prediction:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // 调用预测函数
-  const predictionResult = predictImage(inputImagePath);
-
-  // 返回预测结果
-  res.json(predictionResult);
 });
 
 // 启动服务器

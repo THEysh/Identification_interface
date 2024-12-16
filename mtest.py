@@ -1,57 +1,73 @@
 import sys
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QTextEdit
+from PyQt5.QtCore import QThread, QMutex, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel
 
 class WorkerThread(QThread):
-    # 定义一个信号，用于传递异步函数的结果
-    result_ready = pyqtSignal(str)
+    update_signal = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.mutex = QMutex()
+        self.running = True
 
     def run(self):
-        # 模拟一个耗时的异步任务
-        import time
-        time.sleep(2)  # 模拟耗时操作
-        result = "异步任务完成！"
-        self.result_ready.emit(result)
+        count = 0
+        while self.running:
+            self.mutex.lock()
+            count += 1
+            self.update_signal.emit(f'Count: {count}')
+            self.mutex.unlock()
+            self.msleep(500)  # 模拟耗时操作
+
+    def stop(self):
+        self.running = False
+        self.quit()
+        self.wait()
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.initUI()
+        self.worker_thread = WorkerThread()
+        self.worker_thread.update_signal.connect(self.update_label)
+        self.worker_thread.start()
 
-        # 设置窗口标题和大小
-        self.setWindowTitle("PyQt5 异步函数示例")
+    def initUI(self):
+        self.setWindowTitle('PyQt5 Sync Lock Example')
         self.setGeometry(100, 100, 300, 200)
 
-        # 创建布局
         layout = QVBoxLayout()
 
-        # 创建标签和文本编辑框
-        self.label = QLabel("点击按钮开始异步任务")
-        self.text_edit = QTextEdit()
-
-        # 创建按钮
-        self.button = QPushButton("开始异步任务")
-        self.button.clicked.connect(self.start_async_task)
-
-        # 添加控件到布局
+        self.label = QLabel('Count: 0', self)
         layout.addWidget(self.label)
-        layout.addWidget(self.text_edit)
-        layout.addWidget(self.button)
 
-        # 设置布局
+        start_button = QPushButton('Start', self)
+        start_button.clicked.connect(self.start_thread)
+        layout.addWidget(start_button)
+
+        stop_button = QPushButton('Stop', self)
+        stop_button.clicked.connect(self.stop_thread)
+        layout.addWidget(stop_button)
+
         self.setLayout(layout)
 
-    def start_async_task(self):
-        # 创建并启动工作线程
-        self.worker = WorkerThread()
-        self.worker.result_ready.connect(self.update_ui)
-        self.worker.start()
+    def start_thread(self):
+        if not self.worker_thread.isRunning():
+            self.worker_thread = WorkerThread()
+            self.worker_thread.update_signal.connect(self.update_label)
+            self.worker_thread.start()
 
-    def update_ui(self, result):
-        # 更新 UI
-        self.text_edit.append(result)
-        self.label.setText("任务完成")
+    def stop_thread(self):
+        self.worker_thread.stop()
 
-if __name__ == "__main__":
+    def update_label(self, text):
+        self.label.setText(text)
+
+    def closeEvent(self, event):
+        self.stop_thread()
+        event.accept()
+
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
