@@ -1,13 +1,10 @@
 # coding:utf-8
-import copy
 import time
-from PyQt5.QtCore import Qt, QTimer, QSize, QEasingCurve, QEventLoop, QThread, pyqtSignal, QCoreApplication
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
-                             QSplitter, QLabel, QGridLayout)
-from PyQt5.QtGui import QPixmap, QResizeEvent, QFontMetrics, QImage
-from qfluentwidgets import (PrimaryPushButton, ImageLabel,
-                            SmoothScrollArea, FlowLayout, PushButton, FlyoutView, Flyout, InfoBar, InfoBarPosition,
-                            SwitchButton, TogglePushButton, StateToolTip, InfoBadge, InfoBadgePosition, ToolButton)
+                             QSplitter, QGridLayout)
+from PyQt5.QtGui import QPixmap, QResizeEvent
+from qfluentwidgets import (PrimaryPushButton, FlowLayout, PushButton)
 from qfluentwidgets import FluentIcon as FIF
 from pathlib import Path
 from assembly.AdaptiveImageLabel import AdaptiveImageLabel
@@ -17,9 +14,9 @@ from assembly.ResultDisplayCard import ResultDisplayCard
 from assembly.asyncProcessor import _ImagePredictThread
 from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.clockShow import ClockShow
-from assembly.common import getEmj
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
+from post.requestSent import PredictionClient
 
 
 class _LeftContent():
@@ -55,10 +52,7 @@ class _LeftContent():
         self.leftLayout.addWidget(self.timeClock)
 
     def updateImgCount(self, newnum):
-        try:
-            self.imageCountBtn.setText(f"图片数量: {str(newnum).zfill(3)}")
-        except:
-            pass
+        self.imageCountBtn.setText(f"图片数量: {str(newnum).zfill(3)}")
 
 class _RightContent(SmoothResizingScrollArea):
     def __init__(self, frame: QFrame):
@@ -77,15 +71,16 @@ class _RightContent(SmoothResizingScrollArea):
         self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp'}
 
 class FolderInterface(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self,client: PredictionClient, parent=None):
         super().__init__(parent=parent)
         self.hBoxLayout = QHBoxLayout(self)
         # 创建一个 QSplitter 并设置为水平方向
         self.splitter = QSplitter()
         self.leftRegion = _LeftContent(QFrame(self))
         self.rightRegion = _RightContent(QFrame(self))
+        self.client = client
         self.maxImgCount = 0
-        self.files = 0
+        self.imgFilesPath = []
         self.predictWork = None
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
@@ -110,8 +105,7 @@ class FolderInterface(QFrame):
         if self.predictState.status == Status.NOT_PREDICTED:
             self.predictState.start_prediction()
             self.leftRegion.preModelbtn.setText("预测中...")
-
-
+            self._modelPredict()
         elif self.predictState.status == Status.PREDICTING:
             self.predictState.stop_prediction()
             self.leftRegion.preModelbtn.setText("预测已经被停止")
@@ -120,34 +114,25 @@ class FolderInterface(QFrame):
     def _modelPredict(self):
         # 显示加载模型卡
         iou, conf = self.leftRegion.slider1.getvalue(), self.leftRegion.slider2.getvalue()
+        predictData = [self.imgFilesPath[0], iou, conf]
         self.foldPlayCards.computationPredictCard()
-        for i in range(len(self.files)):
-            predictData = [self.files[i], iou, conf]
-            self.predictWork = _ImagePredictThread(self.client.predict, predictData)
-            self.predictWork.varSignalConnector.connect(self._finishOneTask)
-            self.predictWork.start()
+        self.predictWork = _ImagePredictThread(self.client.predict, predictData)
+        self.predictWork.varSignalConnector.connect(self._finishOneTask)
+        self.predictWork.start()
+
+
+
     def _finishOneTask(self, predictResultsList: list):
-
         [saveDir, rectanglePosDict, scores, classes, inferenceTime] = predictResultsList
-
         if saveDir is None or rectanglePosDict is None or scores is None or classes is None \
                 or inferenceTime is None:
-            InfoBar.error(
-                title='错误',
-                content="服务器未响应",
-                orient=Qt.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP_LEFT,
-                duration=-1,
-                parent=self.leftRegion.leftPanel
-            )
+            self.foldPlayCards.InfoBarErr()
         else:
             self.leftRegion.resultInfoCard.show(saveDir, rectanglePosDict, scores, classes, inferenceTime)
-            # 显示加载模型卡-完成
             # 加载图片
-            self.rightRegion.imageLabel2.setCustomImage(saveDir)
-            self.rightRegion.imageLabel2.zoom_factor = 1.0
-        self._computationDisplayCard()
+        # 显示加载模型卡-完成
+        self.foldPlayCards.computationPredictCard()
+
 
     def resizeEvent(self, event: QResizeEvent):
         """窗口大小改变时更新所有图片的大小"""
@@ -160,7 +145,7 @@ class FolderInterface(QFrame):
     def _clearImages(self):
         """清除所有现有的图片"""
         self.maxImgCount = 0
-        self.files = 0
+        self.imgFilesPath = []
         self.leftRegion.updateImgCount(0)
         self.rightRegion.clearScrollAreaItem()
 
@@ -184,8 +169,10 @@ class FolderInterface(QFrame):
         image_files = []
         for ext in self.rightRegion.image_extensions:
             image_files.extend(Path(folder_path).glob(f'*{ext}'))
-        self.files = len(image_files)
-        if self.files > 0:
+        self.imgFilesPath = []
+        for image_file in image_files:
+            self.imgFilesPath.append(str(image_file))
+        if len(self.imgFilesPath) > 0:
             # 开始显示加载的卡片
             self.foldPlayCards.computationLoadImageCard()
         self.thread = _ImageLoaderThread(image_files, parent=None)
@@ -201,7 +188,7 @@ class FolderInterface(QFrame):
         if index+1 > self.maxImgCount:
             self.maxImgCount = index + 1
             self.leftRegion.updateImgCount(self.maxImgCount)
-        if index+1==self.files:
+        if index+1==len(self.imgFilesPath):
             # 结束显示加载的卡片
             self.foldPlayCards.computationLoadImageCard()
 

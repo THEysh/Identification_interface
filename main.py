@@ -32,7 +32,7 @@ class Window(FluentWindow):
         # create sub interface
         self.postClient = PredictionClient("http://127.0.0.1:{}/predict".format(PORT))
         self.homeInterface = HomeInterface(self.postClient, self)
-        self.folderInterface = FolderInterface(self)
+        self.folderInterface = FolderInterface(self.postClient,self)
         self.settingInterface = Widget('Setting Interface', self)
         self.splashScreen = None
         self.load()

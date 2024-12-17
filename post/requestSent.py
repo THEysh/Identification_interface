@@ -49,7 +49,6 @@ class PredictionClient:
         input_path, iou, conf
         """
         # 请求体数据
-        print("PredictionClient:里", predictData)
         data = {
             "input_image": predictData[0],
             "iou": predictData[1],
@@ -64,6 +63,7 @@ class PredictionClient:
             if response.status_code == 200:
                 prediction_result = response.json()
                 print(f"Request time: {time.time() - t} seconds")
+                print(f"返回结果：{prediction_result}")
                 return prediction_result
             else:
                 print(f"Error: {response.status_code} - {response.text}")
@@ -71,6 +71,7 @@ class PredictionClient:
         except Exception as e:
             print(f"\033[93m警告: 服务器未响应 - {e}\033[0m")
             print(f"Request time: {time.time() - t} seconds")
+            print(f"返回结果：{None}")
             return None
 
 

@@ -1,3 +1,5 @@
+import time
+
 from PyQt5.QtCore import QThread, pyqtSignal
 
 
@@ -13,6 +15,7 @@ class _ImagePredictThread(QThread):
         print("run, begin")
         res = self.requestsFunction(self.predictData)
         if res is None:
+
             self.varSignalConnector.emit([None,None,None,None,None])
         else:
             saveDir = res["save_dir"]
@@ -20,4 +23,5 @@ class _ImagePredictThread(QThread):
             scores = res["scores"]
             classes = res["classes"]
             inferenceTime = res["inference_time"]
+
             self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime])
