@@ -10,7 +10,7 @@ class AsyncFolderInterfaceWork:
         self.preThreads = {}
         self.loadimgThreads = {}
 
-    def stop_threads(self):
+    def stopPreThread(self):
         #  停止所有预测任务
         for name, worker in self.preThreads.items():
             worker.stop()
@@ -55,7 +55,6 @@ class ImagePredictThread(QThread):
 
 class ImagePredictFolderThread(QThread):
     finished = pyqtSignal(str)
-    errsignal = pyqtSignal(str)
     # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime
     varSignalConnector = pyqtSignal(list)
 
@@ -67,8 +66,9 @@ class ImagePredictFolderThread(QThread):
         self.canRunning = True
 
     def run(self):
-        if self.canRunning:
-            for data in self.predictDatas:
+
+        for data in self.predictDatas:
+            if self.canRunning:
                 res = self.requestsFunction(data)
                 if res is None:
                     self.varSignalConnector.emit([None, None, None, None, None])
@@ -79,7 +79,12 @@ class ImagePredictFolderThread(QThread):
                     classes = res["classes"]
                     inferenceTime = res["inference_time"]
                     self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime])
-        self.finished.emit(self.name)
+        if self.canRunning:
+            # 成功完成任务状态
+            self.finished.emit(self.name+"_1")
+        else:
+            # 被迫中断
+            self.finished.emit(self.name + "_0")
 
     def stop(self):
         self.canRunning = False

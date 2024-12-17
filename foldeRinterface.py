@@ -1,6 +1,6 @@
 # coding:utf-8
 import time
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QGridLayout)
 from PyQt5.QtGui import QPixmap, QResizeEvent
@@ -11,7 +11,7 @@ from assembly.AdaptiveImageLabel import AdaptiveImageLabel
 from assembly.InfoDisplayCards import InfoDisplayCards
 from assembly.PredictionState import PredictionStateMachine, Status
 from assembly.ResultDisplayCard import ResultDisplayCard
-from assembly.asyncProcessor import ImagePredictThread, ImageLoaderThread, ImagePredictFolderThread, \
+from assembly.asyncProcessor import ImageLoaderThread, ImagePredictFolderThread, \
     AsyncFolderInterfaceWork
 from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.clockShow import ClockShow
@@ -87,7 +87,7 @@ class FolderInterface(QFrame):
         self.maxImgCount = 0
         self.imgFilesPath = []
         self.thread = None
-        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=2)  # 异步线程数目
+        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=1)  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
@@ -133,16 +133,24 @@ class FolderInterface(QFrame):
             predictWork = ImagePredictFolderThread(self.client.predict, predictDatas[i],
                                                    name=tempName)
             predictWork.varSignalConnector.connect(self._finishOneTask)
+            predictWork.finished.connect(self._finishwork)
             # 保存线程
             self.threadWorks.addPreThread(tempName, predictWork)
             predictWork.start()
-
+    def _finishwork(self,res:str):
+        isOK = res[-1]
+        if isOK=='1':
+            # 成功完成任务
+            pass
+        else:
+            # 异常显示
+            self.foldPlayCards.InfoBarErr()
     def _finishOneTask(self, predictResultsList: list):
         [saveDir, rectanglePosDict, scores, classes, inferenceTime] = predictResultsList
         if saveDir is None or rectanglePosDict is None or scores is None or classes is None \
                 or inferenceTime is None:
-            self.foldPlayCards.InfoBarErr()
-            self.threadWorks.stop_threads()
+            # 异常，断开所有线程
+            self.threadWorks.stopPreThread()
 
         else:
             self.leftRegion.resultInfoCard.show(saveDir, rectanglePosDict, scores, classes, inferenceTime)
