@@ -7,7 +7,7 @@ from qfluentwidgets import FluentIcon as FIF
 from assembly.DraggableImageLabel import DraggableImageLabel
 from assembly.InfoDisplayCards import InfoDisplayCards
 from assembly.ResultDisplayCard import ResultDisplayCard
-from assembly.asyncProcessor import _ImagePredictThread
+from assembly.asyncProcessor import ImagePredictThread
 from assembly.clockShow import ClockShow
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.common import getEmj
@@ -89,7 +89,7 @@ class HomeInterface(QFrame):
         # 显示加载模型卡
         self.homeDisplayCard.computationPredictCard()
         predictData = [filePath, iou, conf]
-        self.predictWork = _ImagePredictThread(self.client.predict, predictData)
+        self.predictWork = ImagePredictThread(self.client.predict, predictData, name="predictWork1")
         self.predictWork.varSignalConnector.connect(self._modelPredictOut)
         self.predictWork.start()
 
