@@ -1,57 +1,66 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton
-from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import QThread, pyqtSignal
-import time
+from enum import Enum
 
-class ImageLoaderThread(QThread):
-    image_loaded = pyqtSignal(QImage)
-    def __init__(self, file_path):
-        super().__init__()
-        self.file_path = file_path
+class Status(Enum):
+    NOT_PREDICTED = "未预测"
+    PREDICTING = "预测中"
+    PREDICTED = "预测完成"
 
-    def run(self):
-        time.sleep(1)  # 模拟加载延迟
-        try:
-            image = QImage(self.file_path)
-            if not image.isNull():
-                self.image_loaded.emit(image)
-            else:
-                print("Failed to load image")
-        except Exception as e:
-            print(f"Error: {e}")
-
-class MainWindow(QMainWindow):
+class PredictionState:
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("异步加载本地图片示例")
-        self.setGeometry(100, 100, 800, 600)
+        self._status = Status.NOT_PREDICTED
 
-        self.label = QLabel(self)
-        self.label.setGeometry(100, 100, 600, 400)
+    def __repr__(self):
+        return f"当前状态: {self._status.value}"
 
-        self.button = QPushButton("加载图片", self)
-        self.button.setGeometry(350, 50, 100, 30)
-        self.button.clicked.connect(self.load_image)
+    @property
+    def status(self):
+        return self._status.value
 
-        self.image_loader = None
-
-    def load_image(self):
-        if self.image_loader is not None and self.image_loader.isRunning():
+    def start_prediction(self):
+        if self._status != Status.NOT_PREDICTED:
+            print(f"当前状态为 {self._status.value}，无法开始预测")
             return
+        self._status = Status.PREDICTING
+        print(f"状态已更新为 {self._status.value}")
 
-        file_path = "resource/painting_girl.png"  # 替换为你的本地图片路径
-        self.image_loader = ImageLoaderThread(file_path)
-        self.image_loader.image_loaded.connect(self.show_image)
-        self.image_loader.start()
+    def complete_prediction(self):
+        if self._status != Status.PREDICTING:
+            print(f"当前状态为 {self._status.value}，无法完成预测")
+            return
+        self._status = Status.PREDICTED
+        print(f"状态已更新为 {self._status.value}")
 
-    def show_image(self, image):
-        pixmap = QPixmap.fromImage(image)
-        self.label.setPixmap(pixmap)
-        self.label.setScaledContents(True)
+    def reset(self):
+        if self._status == Status.NOT_PREDICTED:
+            print(f"当前状态已为 {self._status.value}，无需重置")
+            return
+        self._status = Status.NOT_PREDICTED
+        print(f"状态已重置为 {self._status.value}")
+
+class Predictor:
+    def __init__(self, state):
+        self.state = state
+
+    def start(self):
+        self.state.start_prediction()
+
+    def end(self):
+        self.state.complete_prediction()
+
+    def reset(self):
+        self.state.reset()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+    state_machine = PredictionState()
+    predictor = Predictor(state_machine)
+
+    print(state_machine)
+    # 尝试启动预测
+    predictor.start()
+    print(state_machine)
+    # 尝试完成预测
+    predictor.end()
+    print(state_machine)
+    # 尝试重置状态机
+    predictor.reset()
+    print(state_machine)
