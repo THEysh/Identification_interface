@@ -1,10 +1,11 @@
 import time
 from enum import Enum
 
+
 class Status(Enum):
-    NOT_PREDICTED = "未预测"
-    PREDICTING = "预测中"
-    PREDICT_STOPING = "预测终止中"
+    NOT_PREDICTED = "开始预测..."
+    PREDICTING = "预测中..."
+    PREDICT_STOPING = "正在终止所有线程..."
     PREDICTED = "预测完成"
 
 
@@ -29,13 +30,15 @@ class PredictionStateMachine:
         return self._status
 
     def start_prediction(self):
-        # 未预测-》预测中
-        if self._status != Status.NOT_PREDICTED:
+        if self._status == Status.PREDICTING: return;
+        # 开始预测-》预测中
+        if self._status != Status.NOT_PREDICTED :
             raise StateMachineError(f"当前状态为 {self._status.value}，无法开始预测")
         self._status = Status.PREDICTING
         print(f"状态已更新为 {self._status.value}")
 
     def complete_prediction(self):
+        if self._status == Status.PREDICTED: return
         # 预测中-》完成预测
         if self._status != Status.PREDICTING:
             raise StateMachineError(f"当前状态为 {self._status.value}，无法完成预测")
@@ -49,17 +52,21 @@ class PredictionStateMachine:
         print(f"状态已重置为 {self._status.value}")
 
     def stop_prediction(self):
+        if self._status == Status.PREDICT_STOPING: return
         # 预测中-》停止中
-        if self._status != Status.PREDICTING:
+        if self._status == Status.PREDICTING:
+            self._status = Status.PREDICT_STOPING
+        else:
             raise StateMachineError(f"当前状态为 {self._status.value}，无法停止预测")
-        self._status = Status.PREDICT_STOPING
-        # 停止中-》未预测
-        # time.sleep(3)
-        # self._status = Status.NOT_PREDICTED
-        # btn.setText("开始预测")
-        # btn.setEnabled(True)
 
-
+    def stoping_notprediction(self):
+        if self._status == Status.NOT_PREDICTED: return
+        # 停止中-》开始预测
+        if self._status != Status.PREDICT_STOPING:
+            raise StateMachineError(f"当前状态为 {self._status.value}，无法停止预测")
+        else:
+            self._status = Status.NOT_PREDICTED
+            print(f"状态已更新为 {self._status.value}")
 
 
 # 使用示例

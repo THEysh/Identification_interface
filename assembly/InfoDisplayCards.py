@@ -20,7 +20,7 @@ class InfoDisplayCards:
             content="服务器未响应",
             orient=Qt.Horizontal,
             isClosable=True,
-            position=InfoBarPosition.TOP_LEFT,
+            position=InfoBarPosition.BOTTOM_LEFT,
             duration=-1,
             parent= parent
         )

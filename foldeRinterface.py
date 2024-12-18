@@ -1,6 +1,6 @@
 # coding:utf-8
 import time
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QGridLayout)
 from PyQt5.QtGui import QPixmap, QResizeEvent
@@ -87,7 +87,7 @@ class FolderInterface(QFrame):
         self.maxImgCount = 0
         self.imgFilesPath = []
         self.thread = None
-        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=1)  # 异步线程数目
+        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=2)  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
@@ -98,6 +98,14 @@ class FolderInterface(QFrame):
         # 加载默认路径
         folder_path = "./resource/some_img"
         self._loadimg(folder_path)
+
+    def _statusDisplayUpdate(self):
+        if self.predictState.status == Status.PREDICT_STOPING or self.predictState.status == Status.PREDICTED:
+            self.leftRegion.preModelbtn.setEnabled(False)
+        else:
+            self.leftRegion.preModelbtn.setEnabled(True)
+        text = self.predictState.statusValue
+        self.leftRegion.preModelbtn.setText(text)
 
     def setupUI(self):
         # 设置主布局
@@ -111,12 +119,11 @@ class FolderInterface(QFrame):
         print(self.predictState)
         if self.predictState.status == Status.NOT_PREDICTED:
             self.predictState.start_prediction()
-            self.leftRegion.preModelbtn.setText("预测中...")
             self._modelPredict()
         elif self.predictState.status == Status.PREDICTING:
             self.predictState.stop_prediction()
-            self.leftRegion.preModelbtn.setText("预测已经被停止")
             self.leftRegion.preModelbtn.setEnabled(False)
+        self._statusDisplayUpdate()
 
     @property
     def getslidersValue(self):
@@ -133,24 +140,31 @@ class FolderInterface(QFrame):
             predictWork = ImagePredictFolderThread(self.client.predict, predictDatas[i],
                                                    name=tempName)
             predictWork.varSignalConnector.connect(self._finishOneTask)
-            predictWork.finished.connect(self._finishwork)
+            # predictWork.finished.connect(self._finishwork)
             # 保存线程
             self.threadWorks.addPreThread(tempName, predictWork)
             predictWork.start()
-    def _finishwork(self,res:str):
-        isOK = res[-1]
-        if isOK=='1':
-            # 成功完成任务
-            pass
-        else:
-            # 异常显示
-            self.foldPlayCards.InfoBarErr()
+
+
+
     def _finishOneTask(self, predictResultsList: list):
-        [saveDir, rectanglePosDict, scores, classes, inferenceTime] = predictResultsList
+        [saveDir, rectanglePosDict, scores, classes, inferenceTime, threadName] = predictResultsList
         if saveDir is None or rectanglePosDict is None or scores is None or classes is None \
                 or inferenceTime is None:
-            # 异常，断开所有线程
-            self.threadWorks.stopPreThread()
+            print(self.predictState)
+            print("len", len(self.threadWorks.preThreads))
+            if len(self.threadWorks.preThreads) == 0:
+                # 线程已经清理完毕
+                self.predictState.stoping_notprediction()
+                self._statusDisplayUpdate()
+            else:
+                # 异常显示
+                self.foldPlayCards.InfoBarErr()
+                # 异常，当前线程,删除
+                self.threadWorks.stopOnePreThread(name=threadName)
+                # 预测中-》停止中
+                self.predictState.stop_prediction()
+                self._statusDisplayUpdate()
 
         else:
             self.leftRegion.resultInfoCard.show(saveDir, rectanglePosDict, scores, classes, inferenceTime)
@@ -201,7 +215,7 @@ class FolderInterface(QFrame):
             self.foldPlayCards.computationLoadImageCard()
         thread = ImageLoaderThread(image_files, parent=None)
         thread.varSignalConnector.connect(self._addImageLabel)
-        self.threadWorks.addLoadimgThread(name="loadimgThread",work=thread)
+        self.threadWorks.addLoadimgThread(name="loadimgThread", work=thread)
         thread.start()
 
     def _addImageLabel(self, pixmap: QPixmap, index: int):

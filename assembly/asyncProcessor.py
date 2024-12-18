@@ -10,11 +10,13 @@ class AsyncFolderInterfaceWork:
         self.preThreads = {}
         self.loadimgThreads = {}
 
-    def stopPreThread(self):
-        #  停止所有预测任务
-        for name, worker in self.preThreads.items():
+    def stopOnePreThread(self, name):
+        #  停止预测任务
+        if name in self.preThreads:
+            worker = self.preThreads[name]
             worker.stop()
-        print(f"\033[93m警告: - 所有线程均已经停止 - \033[0m")
+            del self.preThreads[name]
+            print(f"\033[93m警告: - {name}线程已经停止 - \033[0m")
 
     def addPreThread(self, name, work):
         self.preThreads[name] = work
@@ -54,8 +56,7 @@ class ImagePredictThread(QThread):
 
 
 class ImagePredictFolderThread(QThread):
-    finished = pyqtSignal(str)
-    # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime
+    # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime, threadname
     varSignalConnector = pyqtSignal(list)
 
     def __init__(self, requestsFunction, predictDatas: list, name: str, parent=None):
@@ -66,25 +67,18 @@ class ImagePredictFolderThread(QThread):
         self.canRunning = True
 
     def run(self):
-
         for data in self.predictDatas:
             if self.canRunning:
                 res = self.requestsFunction(data)
                 if res is None:
-                    self.varSignalConnector.emit([None, None, None, None, None])
+                    self.varSignalConnector.emit([None, None, None, None, None, self.name])
                 else:
                     saveDir = res["save_dir"]
                     rectanglePosDict = res["rectangle_pos"]
                     scores = res["scores"]
                     classes = res["classes"]
                     inferenceTime = res["inference_time"]
-                    self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime])
-        if self.canRunning:
-            # 成功完成任务状态
-            self.finished.emit(self.name+"_1")
-        else:
-            # 被迫中断
-            self.finished.emit(self.name + "_0")
+                    self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime, self.name])
 
     def stop(self):
         self.canRunning = False
