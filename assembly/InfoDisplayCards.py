@@ -25,6 +25,18 @@ class InfoDisplayCards:
             parent= parent
         )
 
+    def InfoBarManualStop(self, parent=None):
+        parent = self._getParent(parent)
+        InfoBar.error(
+            title='错误',
+            content="手动终止",
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.BOTTOM_LEFT,
+            duration=-1,
+            parent= parent
+        )
+
     def computationLoadImageCard(self,parent=None):
         parent = self._getParent(parent)
         if self._stateLoadImg:

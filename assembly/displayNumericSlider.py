@@ -23,7 +23,6 @@ class DisplayNumericSlider(QFrame):
         self.setLayout(_layout)
 
     def updataSliderWidth(self,width):
-        print(time.time())
         self.slider.setFixedWidth(width)
 
     def changevalue(self):

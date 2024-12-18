@@ -59,6 +59,7 @@ class PredictionStateMachine:
         else:
             raise StateMachineError(f"当前状态为 {self._status.value}，无法停止预测")
 
+
     def stoping_notprediction(self):
         if self._status == Status.NOT_PREDICTED: return
         # 停止中-》开始预测

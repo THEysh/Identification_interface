@@ -56,13 +56,11 @@ class PredictionClient:
         }
         # 发送 POST 请求
         t = time.time()
-        print(t)
         try:
             response = requests.post(self.serverUrl, json=data)
             # 检查请求是否成功
             if response.status_code == 200:
                 prediction_result = response.json()
-                print(f"Request time: {time.time() - t} seconds")
                 print(f"返回结果：{prediction_result}")
                 return prediction_result
             else:
@@ -70,7 +68,6 @@ class PredictionClient:
                 return None
         except Exception as e:
             print(f"\033[93m警告: 服务器未响应 - {e}\033[0m")
-            print(f"Request time: {time.time() - t} seconds")
             print(f"返回结果：{None}")
             return None
 

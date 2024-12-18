@@ -4,8 +4,7 @@ from PyQt5.QtCore import Qt, QUrl, QSize, QEventLoop, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
-                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
-                            InfoBadgePosition, FluentBackgroundTheme, SplashScreen)
+                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont,SplashScreen)
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 from home import HomeInterface

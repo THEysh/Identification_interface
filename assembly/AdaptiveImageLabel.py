@@ -63,7 +63,6 @@ class AdaptiveImageLabel(ImageLabel):
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        print(event)
         if event.button() == Qt.LeftButton:
             self.is_selected = True
             self.update()

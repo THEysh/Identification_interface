@@ -9,6 +9,10 @@ class AsyncFolderInterfaceWork:
         self.parent = parent
         self.preThreads = {}
         self.loadimgThreads = {}
+        self.loadimgPreThreads = {}
+
+    def addPreThread(self, name, work):
+        self.preThreads[name] = work
 
     def stopOnePreThread(self, name):
         #  停止预测任务
@@ -18,15 +22,28 @@ class AsyncFolderInterfaceWork:
             del self.preThreads[name]
             print(f"\033[93m警告: - {name}线程已经停止 - \033[0m")
 
-    def addPreThread(self, name, work):
-        self.preThreads[name] = work
+    def stopAllPrediction(self):
+        names = list(self.preThreads.keys())
+        for name in names:
+            worker = self.preThreads[name]
+            worker.stop()
+            del self.preThreads[name]
+            print(f"\033[93m警告: - {name}线程已经手动停止 - \033[0m")
 
     def addLoadimgThread(self, name, work):
-        self.loadimgThreads[name] = work
+        self.loadimgPreThreads[name] = work
 
+    def finishedOneloadPreimgThreads(self, name):
+        if name in self.loadimgPreThreads:
+            worker = self.loadimgPreThreads[name]
+            del self.loadimgPreThreads[name]
+            print(f"\033[93m加载预测的图片完成: - 线程name:{name},已经停止 - \033[0m")
+
+    @property
+    def loadimgPreThreadsCount(self):
+        return len(self.loadimgPreThreads)
 
 class ImagePredictThread(QThread):
-    finished = pyqtSignal(str)
     # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime
     varSignalConnector = pyqtSignal(list)
 
@@ -49,7 +66,6 @@ class ImagePredictThread(QThread):
                 classes = res["classes"]
                 inferenceTime = res["inference_time"]
                 self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime])
-        self.finished.emit(self.name)
 
     def stop(self):
         self.canRunning = False
@@ -59,26 +75,28 @@ class ImagePredictFolderThread(QThread):
     # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime, threadname
     varSignalConnector = pyqtSignal(list)
 
-    def __init__(self, requestsFunction, predictDatas: list, name: str, parent=None):
+    def __init__(self, requestsFunction, predictDatas: list, threadName: str, parent=None):
         super().__init__(parent)
         self.predictDatas = predictDatas
         self.requestsFunction = requestsFunction
-        self.name = name
+        self.threadName = threadName
         self.canRunning = True
 
     def run(self):
         for data in self.predictDatas:
             if self.canRunning:
+                index = data[3]
                 res = self.requestsFunction(data)
                 if res is None:
-                    self.varSignalConnector.emit([None, None, None, None, None, self.name])
+                    self.varSignalConnector.emit([None, None, None, None, None, index, self.threadName])
                 else:
                     saveDir = res["save_dir"]
                     rectanglePosDict = res["rectangle_pos"]
                     scores = res["scores"]
                     classes = res["classes"]
                     inferenceTime = res["inference_time"]
-                    self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime, self.name])
+                    self.varSignalConnector.emit(
+                        [saveDir, rectanglePosDict, scores, classes, inferenceTime, index, self.threadName])
 
     def stop(self):
         self.canRunning = False
@@ -97,3 +115,19 @@ class ImageLoaderThread(QThread):
             # 延迟加载，避免卡顿
             time.sleep(0.002)
             self.varSignalConnector.emit(pixmap, i)
+
+
+class loadPredictionImageThread(QThread):
+    varSignalConnector = pyqtSignal(QPixmap, int, str)
+
+    def __init__(self, predictionPath: str, index: int, threadName: str, parent=None):
+        super().__init__(parent)
+        self.predictionFile = predictionPath
+        self.index = index
+        self.threadName = threadName
+
+    def run(self):
+        pixmap = QPixmap(self.predictionFile)
+        # 延迟加载，避免卡顿
+        time.sleep(0.002)
+        self.varSignalConnector.emit(pixmap, self.index, self.threadName)
