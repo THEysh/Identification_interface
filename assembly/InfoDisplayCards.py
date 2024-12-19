@@ -15,9 +15,9 @@ class InfoDisplayCards:
         return parent
     def InfoBarErr(self, parent=None):
         parent = self._getParent(parent)
-        InfoBar.error(
-            title='错误',
-            content="服务器未响应",
+        InfoBar.warning(
+            title='警告',
+            content="此图的预测结果尚未确定",
             orient=Qt.Horizontal,
             isClosable=True,
             position=InfoBarPosition.BOTTOM_LEFT,
@@ -44,7 +44,7 @@ class InfoDisplayCards:
             self._stateLoadImg.setState(True)
             self._stateLoadImg = None
         else:
-            self._stateLoadImg = StateToolTip('正在全力加载图片' + getEmj(), '请耐心等待呦~~',  parent)
+            self._stateLoadImg = StateToolTip('正在全力加载图片' + getEmj(), '心急吃不了热豆腐~请耐心等待呦~~',  parent)
             self._stateLoadImg.move(510, 30)
             self._stateLoadImg.show()
 
@@ -55,6 +55,6 @@ class InfoDisplayCards:
             self._predictStatus.setState(True)
             self._predictStatus = None
         else:
-            self._predictStatus = StateToolTip('模型正在全力计算中' + getEmj(), '请耐心等待呦~~', parent)
+            self._predictStatus = StateToolTip('模型正在全力计算中' + getEmj(), '心急吃不了热豆腐~请耐心等待呦~~', parent)
             self._predictStatus.move(510, 30)
             self._predictStatus.show()

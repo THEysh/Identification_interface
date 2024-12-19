@@ -30,7 +30,6 @@ class Widget(QFrame):
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
-        # create sub interface
         self.yolomod = YoloModel()
         self.homeInterface = HomeInterface(self.yolomod, self)
         self.folderInterface = FolderInterface(self.yolomod, self)

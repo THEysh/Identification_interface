@@ -37,7 +37,7 @@ def getSpillFilepath(paths: list, number: int, slidersValue: list):
     for i in range(number):
         res.append([])
     for i, path in enumerate(paths):
-        res[i % number].append([path])
+        res[i % number].append(path)
         res[i % number].extend(slidersValue)
         res[i % number].append(i)
     predictDatas = []

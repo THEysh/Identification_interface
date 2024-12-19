@@ -11,10 +11,12 @@ class DisplayNumericSlider(QFrame):
         self.name = name
         self.slider = Slider(Qt.Horizontal, self)
         self.slider.setFixedWidth(width)
-        self.slider.setRange(0, 100)
-        self.slider.setValue(random.randint(30,70))
+        self.slider.setRange(0, 1000)
+        self.slider.setValue(random.randint(300,700))
         self.slider.valueChanged.connect(lambda :self.changevalue())
-        self.valueLabel = StrongBodyLabel(name + ":{}%".format(self.slider.value()))
+
+        self.valueLabel = StrongBodyLabel()
+        self.changevalue()
         _layout.addWidget(self.valueLabel)
         _layout.addWidget(self.slider)
         # 为当前 QFrame 设置布局
@@ -24,15 +26,12 @@ class DisplayNumericSlider(QFrame):
         self.slider.setFixedWidth(width)
 
     def changevalue(self):
-        v = self.slider.value()
-        if v<=9:
-            v = "0" + str(v)
-        else:
-            v = str(v)
-        self.valueLabel.setText(self.name +":{}%".format(v))
+        v = self.getvalue
+        self.valueLabel.setText(self.name +":{}".format(str(v)))
 
+    @property
     def getvalue(self):
-        return self.slider.value()
+        return self.slider.value()/1000
 
     def addwidget(self,layout):
         layout.addWidget(self)

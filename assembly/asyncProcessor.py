@@ -3,6 +3,8 @@ import time
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap
 
+from yoloMod import YoloModel
+
 
 class AsyncFolderInterfaceWork:
     def __init__(self, ThreadCount=3, parent=None):
@@ -45,8 +47,6 @@ class AsyncFolderInterfaceWork:
         return len(self.loadimgPreThreads)
 
 
-
-
 class ImagePredictThread(QThread):
     # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime
     varSignalConnector = pyqtSignal(list)
@@ -74,22 +74,35 @@ class ImagePredictThread(QThread):
 
 
 class ImagePredictFolderThread(QThread):
-    # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime, threadname
     varSignalConnector = pyqtSignal(list)
-
-    def __init__(self, requestsFunction, predictDatas: list, threadName: str, parent=None):
+    error_signal = pyqtSignal(str)
+    def __init__(self, functionYolo, predictDatas: list, threadName: str, parent=None):
         super().__init__(parent)
         self.predictDatas = predictDatas
-        self.requestsFunction = requestsFunction
+        self.functionYolo = functionYolo
         self.threadName = threadName
         self.canRunning = True
 
     def run(self):
         for data in self.predictDatas:
-            if self.canRunning:
+            try:
+                # 不取索引的数据，只要前3个
                 index = data[3]
-                res = self.requestsFunction(data)
-                self.varSignalConnector.emit(res)
+                data = data[0:3]
+                print("ImagePredictFolderThread:",data)
+                if self.canRunning:
+                        res =  self.functionYolo(data)
+                        # 返回结果：[newimgpath, rectangle_pos, round(float(scores), self.saveMif),
+                        # self.inf[int(classes)], imgshape, orgimgpath, round(runtime,self.saveMif)]
+                        # 添加 线程名字，索引
+                        res.append(self.threadName)
+                        res.append(index)
+                        print(len(res))
+                        self.varSignalConnector.emit(res)
+            except Exception as e:
+            # 如果出现异常，发出错误信号
+                self.error_signal.emit("线程{}异常，图片路径:{},data:{},错误:{}".
+                                               format(self.threadName,data[6],data,e))
 
     def stop(self):
         self.canRunning = False

@@ -17,7 +17,7 @@ from assembly.clockShow import ClockShow
 from assembly.common import getSpillFilepath
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
-
+from yoloMod import YoloModel
 
 
 class _LeftContent():
@@ -76,7 +76,7 @@ class _RightContent(SmoothResizingScrollArea):
 
 
 class FolderInterface(QFrame):
-    def __init__(self, yoloMod, parent=None):
+    def __init__(self, yoloMod:YoloModel, parent=None):
         super().__init__(parent=parent)
         self.yolo = yoloMod
         self.hBoxLayout = QHBoxLayout(self)
@@ -136,17 +136,17 @@ class FolderInterface(QFrame):
 
     @property
     def getslidersValue(self):
-        iou, conf = self.leftRegion.slider1.getvalue(), self.leftRegion.slider2.getvalue()
+        iou, conf = self.leftRegion.slider1.getvalue, self.leftRegion.slider2.getvalue
         return [iou, conf]
 
     def _modelPredict(self):
-        # 显示加载模型卡
         if len(self.imgFilesPath) <= 0: return
         slidersValue = self.getslidersValue
+        # predictDatas: 原始img路径，iou,conf,index
         predictDatas = getSpillFilepath(self.imgFilesPath, self.threadWorks.threadCount, slidersValue)
         for i in range(self.threadWorks.threadCount):
             tempName = f"predictWork{i + 1}"
-            predictWork = ImagePredictFolderThread(self.client.predict, predictDatas[i],
+            predictWork = ImagePredictFolderThread(self.yolo.run_inference, predictDatas[i],
                                                    threadName=tempName)
             predictWork.varSignalConnector.connect(self._finishOneTask)
             # 保存线程
@@ -154,33 +154,21 @@ class FolderInterface(QFrame):
             predictWork.start()
 
     def _finishOneTask(self, predictResultsList: list):
-        [saveDir, rectanglePosDict, scores, classes, inferenceTime, index, threadName] = predictResultsList
-        if saveDir is None or rectanglePosDict is None or scores is None or classes is None \
-                or inferenceTime is None:
-            if len(self.threadWorks.preThreads) == 0:
-                # 线程已经清理完毕
-                self.predictState.stoping_notprediction()
-                self._statusDisplayUpdate()
-            else:
-                # 服务器异常显示
-                self.foldPlayCards.InfoBarErr()
-                # 异常，当前线程,删除
-                self.threadWorks.stopOnePreThread(name=threadName)
-                # 预测中-》停止中
-                self.predictState.stop_prediction()
-                self._statusDisplayUpdate()
+        [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath,
+         inferenceTime, threadName, index]  = predictResultsList
+        if rectanglePosDict is None :
+            # 当前结果预测异常显示
+            self.foldPlayCards.InfoBarErr()
         else:
-            self.leftRegion.resultInfoCard.show(saveDir, rectanglePosDict, scores, classes, inferenceTime)
-            pre_info = {"save_dir": saveDir,
+            pass
+            self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
+            pre_info = {"save_dir": savePath,
                         "rectangle_pos": rectanglePosDict,
                         "scores": scores,
                         "classes": classes,
                         "inference_time": inferenceTime}
-
             self._imgAddInfo(index=index, key="pre", info=pre_info)
-            prePath = saveDir[0]
-            threadName = prePath
-            thread = loadPredictionImageThread(prePath, index=index, threadName=threadName, parent=None)
+            thread = loadPredictionImageThread(savePath, index=index, threadName=threadName, parent=None)
             thread.varSignalConnector.connect(self._addPredictImage)
             self.threadWorks.addLoadimgThread(name=threadName, work=thread)
             thread.start()
@@ -264,7 +252,6 @@ class FolderInterface(QFrame):
         if self.predictState.status == Status.PREDICT_STOPING and self.threadWorks.loadimgPreThreadsCount <= 1 :
             self.predictState.stoping_notprediction()
             self._statusDisplayUpdate()
-
 
         # if index + 1 == len(self.imgFilesPath):
         #     # 结束显示加载的卡片

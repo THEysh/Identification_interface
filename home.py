@@ -21,7 +21,7 @@ class _LeftContent:
         self.leftPanel.setMaximumWidth(self.MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
-        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
+        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
         self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.7), self.leftPanel)
         self.timeClock = ClockShow(self.leftPanel)
@@ -85,14 +85,13 @@ class HomeInterface(QFrame):
         self._modelPredict(file_path)
 
     def _modelPredict(self, filePath):
-        iou, conf = self.leftRegion.slider1.getvalue(), self.leftRegion.slider2.getvalue()
+        iou, conf = self.leftRegion.slider1.getvalue, self.leftRegion.slider2.getvalue
         # 显示加载模型卡
         self.homeDisplayCard.computationPredictCard()
         predictData = [filePath, iou, conf]
         self.predictWork = ImagePredictThread(self.yolo.run_inference, predictData, name="predictWork1")
         self.predictWork.varSignalConnector.connect(self._modelPredictOut)
         self.predictWork.start()
-
     def _modelPredictOut(self, predictResultsList: list):
         [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath, inferenceTime] = predictResultsList
         if rectanglePosDict is None:
