@@ -17,7 +17,7 @@ from assembly.clockShow import ClockShow
 from assembly.common import getSpillFilepath
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
-from post.requestSent import PredictionClient
+
 
 
 class _LeftContent():
@@ -76,14 +76,14 @@ class _RightContent(SmoothResizingScrollArea):
 
 
 class FolderInterface(QFrame):
-    def __init__(self, client: PredictionClient, parent=None):
+    def __init__(self, yoloMod, parent=None):
         super().__init__(parent=parent)
+        self.yolo = yoloMod
         self.hBoxLayout = QHBoxLayout(self)
         # 创建一个 QSplitter 并设置为水平方向
         self.splitter = QSplitter()
         self.leftRegion = _LeftContent(QFrame(self))
         self.rightRegion = _RightContent(QFrame(self))
-        self.client = client
         self.maxImgCount = 0
         self.imgFilesPath = []
         self.allImgInfo = {}
@@ -185,7 +185,6 @@ class FolderInterface(QFrame):
             self.threadWorks.addLoadimgThread(name=threadName, work=thread)
             thread.start()
 
-
         # self.foldPlayCards.computationPredictCard()
 
     def resizeEvent(self, event: QResizeEvent):
@@ -262,8 +261,7 @@ class FolderInterface(QFrame):
         self._imgAddInfo(index=index, key="pre", info={"pixmap": pixmap, "row": index})
         self.threadWorks.finishedOneloadPreimgThreads(name=threadName)
 
-        print(self.predictState.status, self.threadWorks.loadimgPreThreadsCount)
-        if self.predictState.status == Status.PREDICT_STOPING and self.threadWorks.loadimgPreThreadsCount <=1 :
+        if self.predictState.status == Status.PREDICT_STOPING and self.threadWorks.loadimgPreThreadsCount <= 1 :
             self.predictState.stoping_notprediction()
             self._statusDisplayUpdate()
 

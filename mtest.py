@@ -1,19 +1,30 @@
-class A:
-    def method_a(self):
-        print("Method A")
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
 
-class B:
-    def method_b(self):
-        print("Method B")
+class MyWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Button Click Example")
 
-class C(A, B):
-    def method_c(self):
-        print("Method C")
+        # 初始化按钮
+        self.loadModBtn = QPushButton("Load Module", self)
 
-# 创建类 C 的实例
-c = C()
+        # 设置布局
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.loadModBtn)
 
-# 可以调用来自类 A 和类 B 的方法
-c.method_a()  # 输出: Method A
-c.method_b()  # 输出: Method B
-c.method_c()  # 输出: Method C
+        # 连接按钮点击事件
+        # 使用 lambda 传递额外参数
+        self.loadModBtn.clicked.connect(lambda: self.on_button_click("Hello, world!"))
+
+    def on_button_click(self, message):
+        # 在按钮点击时调用
+        print(f"Button clicked! Message: {message}")
+
+
+# 启动应用
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MyWindow()
+    window.show()
+    sys.exit(app.exec_())

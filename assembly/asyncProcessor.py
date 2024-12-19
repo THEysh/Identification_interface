@@ -1,3 +1,4 @@
+import os
 import time
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap
@@ -43,10 +44,13 @@ class AsyncFolderInterfaceWork:
     def loadimgPreThreadsCount(self):
         return len(self.loadimgPreThreads)
 
+
+
+
 class ImagePredictThread(QThread):
     # list的数值分别为：saveDir, rectanglePosDict, scores, classes, inferenceTime
     varSignalConnector = pyqtSignal(list)
-
+    error_signal = pyqtSignal(str)
     def __init__(self, requestsFunction, predictData: list, name: str, parent=None):
         super().__init__(parent)
         self.predictData = predictData
@@ -56,16 +60,14 @@ class ImagePredictThread(QThread):
 
     def run(self):
         if self.canRunning:
-            res = self.requestsFunction(self.predictData)
-            if res is None:
-                self.varSignalConnector.emit([None, None, None, None, None])
-            else:
-                saveDir = res["save_dir"]
-                rectanglePosDict = res["rectangle_pos"]
-                scores = res["scores"]
-                classes = res["classes"]
-                inferenceTime = res["inference_time"]
-                self.varSignalConnector.emit([saveDir, rectanglePosDict, scores, classes, inferenceTime])
+            try:
+                # 调用模型的推理方法
+                result = self.requestsFunction(self.predictData)
+                # 发出信号，传递结果
+                self.varSignalConnector.emit(result)
+            except Exception as e:
+                # 如果出现异常，发出错误信号
+                self.error_signal.emit(str(e))
 
     def stop(self):
         self.canRunning = False
@@ -87,16 +89,7 @@ class ImagePredictFolderThread(QThread):
             if self.canRunning:
                 index = data[3]
                 res = self.requestsFunction(data)
-                if res is None:
-                    self.varSignalConnector.emit([None, None, None, None, None, index, self.threadName])
-                else:
-                    saveDir = res["save_dir"]
-                    rectanglePosDict = res["rectangle_pos"]
-                    scores = res["scores"]
-                    classes = res["classes"]
-                    inferenceTime = res["inference_time"]
-                    self.varSignalConnector.emit(
-                        [saveDir, rectanglePosDict, scores, classes, inferenceTime, index, self.threadName])
+                self.varSignalConnector.emit(res)
 
     def stop(self):
         self.canRunning = False

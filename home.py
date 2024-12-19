@@ -10,8 +10,7 @@ from assembly.ResultDisplayCard import ResultDisplayCard
 from assembly.asyncProcessor import ImagePredictThread
 from assembly.clockShow import ClockShow
 from assembly.displayNumericSlider import DisplayNumericSlider
-from assembly.common import getEmj
-from post.requestSent import PredictionClient
+from yoloMod import YoloModel
 
 
 class _LeftContent:
@@ -21,7 +20,6 @@ class _LeftContent:
         self.leftPanel.setMinimumWidth(int(self.MaximumWidth * 0.5))
         self.leftPanel.setMaximumWidth(self.MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
-
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
         self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
@@ -55,9 +53,9 @@ class _RightContent:
 
 
 class HomeInterface(QFrame):
-    def __init__(self, client: PredictionClient, parent=None):
+    def __init__(self, yoloMod:YoloModel, parent=None):
         super().__init__(parent=parent)
-        self.client = client
+        self.yolo = yoloMod
         self.hBoxLayout = QHBoxLayout(self)
         self.splitter = QSplitter()
         self.leftRegion = _LeftContent(QFrame(self))
@@ -67,11 +65,13 @@ class HomeInterface(QFrame):
         self.setupUI()
         self.setObjectName('HomeInterface')
 
+        self.leftRegion.loadImage1Btn.clicked.connect(lambda:self.loadImage())
+
     def setupUI(self):
         self.splitter.addWidget(self.leftRegion.leftPanel)
         self.splitter.addWidget(self.rightRegion.rightPanel)
         self.hBoxLayout.addWidget(self.splitter)
-        self.leftRegion.loadImage1Btn.clicked.connect(lambda: self.loadImage())
+
 
     def loadImage(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -88,22 +88,18 @@ class HomeInterface(QFrame):
         iou, conf = self.leftRegion.slider1.getvalue(), self.leftRegion.slider2.getvalue()
         # 显示加载模型卡
         self.homeDisplayCard.computationPredictCard()
-        predictData = [[filePath], iou, conf]
-        self.predictWork = ImagePredictThread(self.client.predict, predictData, name="predictWork1")
+        predictData = [filePath, iou, conf]
+        self.predictWork = ImagePredictThread(self.yolo.run_inference, predictData, name="predictWork1")
         self.predictWork.varSignalConnector.connect(self._modelPredictOut)
         self.predictWork.start()
 
     def _modelPredictOut(self, predictResultsList: list):
-        [saveDir, rectanglePosDict, scores, classes, inferenceTime] = predictResultsList
-        if saveDir is None or rectanglePosDict is None or scores is None or classes is None \
-                or inferenceTime is None:
+        [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath, inferenceTime] = predictResultsList
+        if rectanglePosDict is None:
             self.homeDisplayCard.InfoBarErr(parent=self.leftRegion.leftPanel)
         else:
-            self.leftRegion.resultInfoCard.show(saveDir, rectanglePosDict, scores, classes, inferenceTime)
-            # 显示加载模型卡-完成
-            # 加载图片
-            loadPath = saveDir[0]
-            self.rightRegion.imageLabel2.setCustomImage(loadPath)
+            self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
+            self.rightRegion.imageLabel2.setCustomImage(savePath)
             self.rightRegion.imageLabel2.zoom_factor = 1.0
         self.homeDisplayCard.computationPredictCard()
 

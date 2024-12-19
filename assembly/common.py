@@ -1,8 +1,7 @@
 import random
 import string
 import time
-from PyQt5.QtCore import QEventLoop, QTimer
-from PyQt5.QtWidgets import QFrame, QWidget
+
 
 EmojiList = [
     "😀", "😆", "😊", "🥰", "😍", "😘", "😁",
@@ -15,7 +14,6 @@ sadnessEmojiList = [
     "😩", "😫", "😿", "🥺", "😥", "😪",
 ]
 random.seed(time.time())
-
 
 def getEmj(n=1):
     res = ""
@@ -54,6 +52,9 @@ def getSpillFilepath(paths: list, number: int, slidersValue: list):
 def randomName():
     name = "".join(random.choices(string.ascii_letters + string.digits, k=16))
     return name
+
+
+
 
 
 if __name__ == '__main__':

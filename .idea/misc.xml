@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="PyQt-Fluent" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="PyQt-Fluent" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="yolo_test" project-jdk-type="Python SDK" />
 </project>

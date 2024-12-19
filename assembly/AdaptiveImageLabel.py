@@ -1,5 +1,3 @@
-import sys
-import time
 from PyQt5.QtCore import Qt, QTimer, QRectF
 from PyQt5.QtGui import QPixmap, QPainter, QBrush, QColor, QPen, QPainterPath
 from qfluentwidgets import ImageLabel, SmoothScrollArea

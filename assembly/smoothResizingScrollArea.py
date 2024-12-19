@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QEasingCurve, Qt, QTimer
-from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel
+from PyQt5.QtWidgets import QLabel
 from qfluentwidgets import SmoothScrollArea
 
 

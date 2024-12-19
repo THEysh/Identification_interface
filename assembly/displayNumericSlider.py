@@ -1,8 +1,6 @@
 import random
-import time
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QResizeEvent
-from PyQt5.QtWidgets import QFrame, QSlider, QHBoxLayout, QVBoxLayout
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFrame,QHBoxLayout
 from qfluentwidgets import Slider, StrongBodyLabel
 
 

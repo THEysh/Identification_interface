@@ -1,8 +1,7 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFontMetrics, QIcon, QFont
+
+from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtWidgets import  QWidget
 from qfluentwidgets import FluentIconBase, PushButton
-from typing import Union
 
 
 
