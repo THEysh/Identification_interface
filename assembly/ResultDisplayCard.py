@@ -7,11 +7,17 @@ from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.common import getEmj, getSadnessEmj
 
 
+def _replace_last_occurrence(s, old, new):
+    return s.rsplit(old, 1)[0] + new + s.rsplit(old, 1)[1]
+
+
 class ResultDisplayCard():
     def __init__(self, widthLimit: int, frame: QFrame, ):
         self.panel = frame
         self.rList = []
         self.widthLimit = widthLimit
+        # 保留几位小数
+        self.roundNumber = 3
         self._setOriginalList()
         self.rList.append(PushButton(self.originalList[0], self.panel))
         self.rList.append(PushButton(self.originalList[1], self.panel))
@@ -20,8 +26,10 @@ class ResultDisplayCard():
         self.rList.append(PushButton(self.originalList[4], self.panel))
         self.rList.append(PushButton(self.originalList[5], self.panel))
         self.rList.append(PushButton(self.originalList[6], self.panel))
-        self.rList.append(
-            AutoResizePushButton(self.widthLimit, None, self.originalList[7], self.panel, widthLimitFactor=1.0, ))
+        self.rList.append(AutoResizePushButton(self.widthLimit, None,
+                                               self.originalList[7],
+                                               self.panel,
+                                               widthLimitFactor=1.0, ))
 
     def _setOriginalList(self):
         self.originalList = ["识别结果: " + getEmj() + " ",
@@ -52,21 +60,19 @@ class ResultDisplayCard():
         try:
             for i in range(len(self.rList)):
                 tempStr = self.rList[i].text()
-                new_inf = self._replace_last_occurrence(tempStr, tempStr[-1], str(ans[i]))
+                new_inf = _replace_last_occurrence(tempStr, tempStr[-1], str(ans[i]))
                 self.rList[i].setText(new_inf)
+
         except Exception as e:
             InfoBar.warning(
                 title='警告',
-                content="数据" + getSadnessEmj() + "\n匹配出现错误",
+                content="数据" + getSadnessEmj() + "\n匹配出现错误" + str(e),
                 orient=Qt.Horizontal,
                 isClosable=True,  # disable close button
                 position=InfoBarPosition.TOP_LEFT,
-                duration=20000,
+                duration=2000,
                 parent=self.panel
             )
-
-    def _replace_last_occurrence(self, s, old, new):
-        return s.rsplit(old, 1)[0] + new + s.rsplit(old, 1)[1]
 
     def addwidget(self, layout: QLayout):
         for r in self.rList:

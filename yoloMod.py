@@ -17,7 +17,6 @@ class YoloModel:
     def __init__(self):
         self.yolo = YOLO("./best.pt", task="detect")
         self.inf = {0: '11 ', 1: '02 ', 2: '07 ', 3: '03 ', 4: '2 ', 5: '13 ', 6: '25 ', 7: '28 ', 8: '04 '}
-        self.saveMif = 3
 
     def run_inference(self, data: list):
         print("----YoloModel开始,data:{}----".format(data))
@@ -40,13 +39,13 @@ class YoloModel:
             print("path:{},未识别".format(newImgPath))
             return [newImgPath, None, None, None, imgShape, orgImgPath, runtime]
         rectangle_pos = {
-            "x": round(results[0].boxes.xyxy[0][0].item(), self.saveMif),
-            "y": round(results[0].boxes.xyxy[0][1].item(), self.saveMif),
-            "width": round((results[0].boxes.xyxy[0][2] - results[0].boxes.xyxy[0][0]).item(), self.saveMif),
-            "height": round((results[0].boxes.xyxy[0][3] - results[0].boxes.xyxy[0][1]).item(), self.saveMif)
+            "x": results[0].boxes.xyxy[0][0].item(),
+            "y": results[0].boxes.xyxy[0][1].item(),
+            "width": (results[0].boxes.xyxy[0][2] - results[0].boxes.xyxy[0][0]).item(),
+            "height": (results[0].boxes.xyxy[0][3] - results[0].boxes.xyxy[0][1]).item()
         }
         scores = results[0].boxes.conf
         classes = results[0].boxes.cls
         print("YoloModel结束"+"-" * 100)
-        return [newImgPath, rectangle_pos, round(float(scores[0]), self.saveMif), self.inf[int(classes[0])],
-                imgShape, orgImgPath, round(runtime, self.saveMif)]
+        return [newImgPath, rectangle_pos, float(scores[0]),
+                self.inf[int(classes[0])], imgShape, orgImgPath, runtime]

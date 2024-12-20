@@ -34,7 +34,6 @@ class _LeftContent:
         self.resultInfoCard.addwidget(self.leftLayout)
         self.leftLayout.addWidget(self.timeClock)
 
-
 class _RightContent:
     def __init__(self, frame: QFrame):
         self.rightPanel = frame
@@ -92,13 +91,13 @@ class HomeInterface(QFrame):
         self.predictWork = ImagePredictThread(self.yolo.run_inference, predictData, name="predictWork1")
         self.predictWork.varSignalConnector.connect(self._modelPredictOut)
         self.predictWork.start()
+
     def _modelPredictOut(self, predictResultsList: list):
         [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath, inferenceTime] = predictResultsList
         if rectanglePosDict is None:
             self.homeDisplayCard.InfoBarErr(parent=self.leftRegion.leftPanel)
-        else:
-            self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
-            self.rightRegion.imageLabel2.setCustomImage(savePath)
-            self.rightRegion.imageLabel2.zoom_factor = 1.0
+        self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
+        self.rightRegion.imageLabel2.setCustomImage(savePath)
+        self.rightRegion.imageLabel2.zoom_factor = 1.0
         self.homeDisplayCard.computationPredictCard()
 
