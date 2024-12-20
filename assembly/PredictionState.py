@@ -1,12 +1,15 @@
 import time
 from enum import Enum
 
+from assembly.common import getEmj
+
 
 class Status(Enum):
-    NOT_PREDICTED = "开始预测..."
-    PREDICTING = "预测中..."
-    PREDICT_STOPING = "正在终止所有线程..."
-    PREDICTED = "预测完成"
+    LOAD_IMG = "加载图片..." + getEmj()
+    NOT_PREDICTED = "开始/继续~预测..."+ getEmj()
+    PREDICTING = "预测中..."+ getEmj()
+    PREDICT_STOPING = "正在终止所有线程..."+ getEmj()
+    PREDICTED = "预测完成"+ getEmj()
 
 
 
@@ -44,10 +47,10 @@ class PredictionStateMachine:
         print(f"状态已更新为 {self._status.value}")
 
     def reset(self):
-        if self._status == Status.NOT_PREDICTED:
+        if self._status == Status.LOAD_IMG:
             print(f"当前状态已为 {self._status.value}，无需重置")
             return
-        self._status = Status.NOT_PREDICTED
+        self._status = Status.LOAD_IMG
         print(f"状态已重置为 {self._status.value}")
 
     def stop_prediction(self):
@@ -77,6 +80,13 @@ class PredictionStateMachine:
             print(f"当前状态为 {self._status.value}，无法切换为开始预测状态")
             return
 
+    def LoadImgToStartPrediction(self):
+        if self._status == Status.NOT_PREDICTED: return
+        if self._status == Status.LOAD_IMG:
+            self._status = Status.NOT_PREDICTED
+        else:
+            print(f"当前状态为 {self._status.value}，无法切换为开始预测状态")
+            return
 # 使用示例
 if __name__ == "__main__":
     sm = PredictionStateMachine()

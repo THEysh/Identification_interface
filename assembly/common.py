@@ -29,17 +29,19 @@ def getSadnessEmj(n=1):
     return res
 
 
-def getSpillFilepath(paths: list, number: int, slidersValue: list):
+def getSpillFilepath(indexPaths: list, number: int, slidersValue: list):
     """
 
     """
     res = []
     for i in range(number):
         res.append([])
-    for i, path in enumerate(paths):
+    for i, indexPath in enumerate(indexPaths):
+        index = indexPath[0]
+        path = indexPath[1]
         res[i % number].append(path)
         res[i % number].extend(slidersValue)
-        res[i % number].append(i)
+        res[i % number].append(index)
     predictDatas = []
     for i in range(len(res)):
         lst = res[i]

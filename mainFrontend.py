@@ -10,7 +10,6 @@ from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 from home import HomeInterface
 from foldeRinterface import FolderInterface
-from ultralytics import YOLO
 from yoloMod import YoloModel
 
 
@@ -29,9 +28,9 @@ class Widget(QFrame):
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
-        self.yolomod = YoloModel()
-        self.homeInterface = HomeInterface(self.yolomod, self)
-        self.folderInterface = FolderInterface(self.yolomod, self)
+        self.yoloMod = YoloModel()
+        self.homeInterface = HomeInterface(self.yoloMod, self)
+        self.folderInterface = FolderInterface(self.yoloMod, self)
         self.settingInterface = Widget('Setting Interface', self)
         self.splashScreen = None
         self.load()

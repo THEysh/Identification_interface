@@ -86,7 +86,7 @@ class MyApp(QWidget):
 
     def start_prediction(self):
         # 假设你有两个图片路径和一些配置数据
-        dir_path = 'D:\\code\\yolotrain_dataset\\images'
+        dir_path = 'testimg'
         images = get_image_paths(dir_path)
 
         # 初始化 YOLO 模型

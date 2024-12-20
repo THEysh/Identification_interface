@@ -27,7 +27,7 @@ class InfoDisplayCards:
             orient=Qt.Horizontal,
             isClosable=False,
             position=InfoBarPosition.BOTTOM_LEFT,
-            duration=1000,
+            duration=750,
             parent=parent
         )
 

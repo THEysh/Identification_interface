@@ -23,6 +23,7 @@ class AdaptiveImageLabel(ImageLabel):
         self.original_pixmap = pixmap
         super().setPixmap(pixmap)
         QTimer.singleShot(0, self.updateSize)
+
     def setCustomImage(self, image_path: str):
         self.path = image_path
         """设置图片并保存原始图片"""

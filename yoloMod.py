@@ -2,7 +2,6 @@
 import os
 import random
 import time
-
 from ultralytics import YOLO
 
 
