@@ -25,9 +25,9 @@ class InfoDisplayCards:
             title='警告',
             content=content,
             orient=Qt.Horizontal,
-            isClosable=True,
+            isClosable=False,
             position=InfoBarPosition.BOTTOM_LEFT,
-            duration=-1,
+            duration=1000,
             parent=parent
         )
 

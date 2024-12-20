@@ -35,8 +35,8 @@ class YoloModel:
         iou = data[1]
         conf = data[2]
         try:
-            tempYolo = copy.deepcopy(self.yolo)
-            results = tempYolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
+            # tempYolo = copy.deepcopy(self.yolo)
+            results = self.yolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
         except Exception as e:
             print("Exception occurred ( tempYolo.predict ):", e)
             return [None, None, None, None, None, orgimgpath, None]

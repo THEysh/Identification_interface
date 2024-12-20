@@ -137,5 +137,5 @@ class loadPredictionImageThread(QThread):
     def run(self):
         pixmap = QPixmap(self.predictionFile)
         # 延迟加载，避免卡顿
-        time.sleep(0.002)
+        time.sleep(0.005)
         self.varSignalConnector.emit(pixmap, self.index, self.threadName)

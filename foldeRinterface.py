@@ -87,7 +87,7 @@ class FolderInterface(QFrame):
         self.maxImgCount = 0
         self.imgFilesPath = []
         self.allImgInfo = {}
-        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=2)  # 异步线程数目
+        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=1)  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
@@ -163,7 +163,7 @@ class FolderInterface(QFrame):
             return
         if rectanglePosDict is None and savePath is not None:
             # 当前结果预测异常显示
-            self.foldPlayCards.InfoBarErr(infStr="第{}行图预测结果尚未确定".format(index + 1), parent=self.leftRegion.leftPanel)
+            self.foldPlayCards.InfoBarErr(infStr="第{}行图预测结果没有标志".format(index + 1), parent=self.leftRegion.leftPanel)
         self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
         pre_info = {"save_dir": savePath,
                     "rectangle_pos": rectanglePosDict,
@@ -175,7 +175,6 @@ class FolderInterface(QFrame):
         thread.varSignalConnector.connect(self._addPredictImage)
         self.threadWorks.addLoadimgThread(name=threadName, work=thread)
         thread.start()
-
         # self.foldPlayCards.computationPredictCard()
 
     def errorSignalThread(self, e):
