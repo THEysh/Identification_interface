@@ -52,15 +52,16 @@ class YoloModel:
 
 class YoloThread(QThread):
     result_signal = pyqtSignal(list)  # 定义信号，用于传输结果
-
-    def __init__(self, model, data):
+    def __init__(self, model, datas):
         super().__init__()
         self.model = model
-        self.data = data
+        self.datas = datas
 
     def run(self):
-        result = self.model.run_inference(self.data)
-        self.result_signal.emit(result)  # 传递结果到主线程
+        for data in self.datas:
+            result = self.model.run_inference(data)
+            print(result)
+            self.result_signal.emit(result)  # 传递结果到主线程
 
 
 class MyApp(QWidget):
@@ -85,16 +86,22 @@ class MyApp(QWidget):
 
     def start_prediction(self):
         # 假设你有两个图片路径和一些配置数据
-        data1 = ["resource/cut_RGB_20240719084737.png", 0.5, 0.4]
-        data2 = ["resource/logo.png", 0.5, 0.4]
+        dir_path = 'D:\\code\\yolotrain_dataset\\images'
+        images = get_image_paths(dir_path)
 
         # 初始化 YOLO 模型
         model1 = YoloModel()
         model2 = YoloModel()
-
+        data1s = []
+        data2s = []
+        for i , image in enumerate(images):
+            if i<len(images)//2:
+                data1s.append([image,0.5,0.5])
+            else:
+                data2s.append([image,0.5,0.5])
         # 创建并启动两个线程
-        self.thread1 = YoloThread(model1, data1)
-        self.thread2 = YoloThread(model2, data2)
+        self.thread1 = YoloThread(model1,data1s)
+        self.thread2 = YoloThread(model2,data2s)
 
         self.thread1.result_signal.connect(self.update_label)
         self.thread2.result_signal.connect(self.update_label)
@@ -102,10 +109,18 @@ class MyApp(QWidget):
         self.thread1.start()
         self.thread2.start()
 
+
+
     def update_label(self, result):
         print("Prediction result:", result)
         self.label.setText(f'Prediction result: {result[0]}')
 
+
+
+def get_image_paths(dir_path):
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
+    image_paths = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)) and os.path.splitext(f)[1].lower() in image_extensions]
+    return image_paths
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

@@ -1,4 +1,6 @@
 # coding:utf-8
+import copy
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QGridLayout)
@@ -87,7 +89,7 @@ class FolderInterface(QFrame):
         self.maxImgCount = 0
         self.imgFilesPath = []
         self.allImgInfo = {}
-        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=1)  # 异步线程数目
+        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=4)  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
@@ -117,7 +119,7 @@ class FolderInterface(QFrame):
             self.predictState.stop_prediction()
             # 更新
             self._statusDisplayUpdate()
-            # 当前线程, 手动删除
+            # 当前线程, 手动
             self.threadWorks.stopAllPrediction()
 
         self._statusDisplayUpdate()
@@ -146,7 +148,9 @@ class FolderInterface(QFrame):
         predictDatas = getSpillFilepath(self.imgFilesPath, self.threadWorks.threadCount, slidersValue)
         for i in range(self.threadWorks.threadCount):
             tempName = f"predictWork{i + 1}"
-            predictWork = ImagePredictFolderThread(self.yolo.run_inference, predictDatas[i],
+            # 实例话yolo作用线程使用
+            tempYoloModel = copy.deepcopy(self.yolo)
+            predictWork = ImagePredictFolderThread(tempYoloModel, predictDatas[i],
                                                    threadName=tempName)
             predictWork.varSignalConnector.connect(self._finishOneTask)
             predictWork.error_signal.connect(self.errorSignalThread)
@@ -158,6 +162,8 @@ class FolderInterface(QFrame):
         try:
             [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath,
              inferenceTime, threadName, index] = predictResultsList
+            print("res:",[savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath,
+             inferenceTime, threadName, index])
         except Exception as e:
             print("_finishOneTask:错误:", e)
             return

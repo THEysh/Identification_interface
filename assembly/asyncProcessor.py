@@ -1,18 +1,20 @@
 import os
+import random
 import time
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 from PyQt5.QtGui import QPixmap
-
 from yoloMod import YoloModel
 
+SleepTime = 0.02
 
 class AsyncFolderInterfaceWork:
-    def __init__(self, ThreadCount=3, parent=None):
+    def __init__(self, ThreadCount=1, parent=None):
         self.threadCount = ThreadCount
         self.parent = parent
         self.preThreads = {}
         self.loadimgThreads = {}
-        self.loadimgPreThreads = {}
+        self.imgPreThreads ={}
+
 
     def addPreThread(self, name, work):
         self.preThreads[name] = work
@@ -34,17 +36,16 @@ class AsyncFolderInterfaceWork:
             print(f"\033[93m警告: - {name}线程已经手动停止 - \033[0m")
 
     def addLoadimgThread(self, name, work):
-        self.loadimgPreThreads[name] = work
+        self.imgPreThreads[name] = work
 
     def finishedOneloadPreimgThreads(self, name):
-        if name in self.loadimgPreThreads:
-            worker = self.loadimgPreThreads[name]
-            del self.loadimgPreThreads[name]
+        if name in self.imgPreThreads:
+            del self.imgPreThreads[name]
             print(f"\033[93m加载预测的图片完成: - 线程name:{name},已经停止 - \033[0m")
 
     @property
     def loadimgPreThreadsCount(self):
-        return len(self.loadimgPreThreads)
+        return len(self.imgPreThreads)
 
 
 class ImagePredictThread(QThread):
@@ -65,6 +66,7 @@ class ImagePredictThread(QThread):
                 # 调用模型的推理方法
                 result = self.requestsFunction(self.predictData)
                 # 发出信号，传递结果
+                time.sleep(SleepTime)
                 self.varSignalConnector.emit(result)
             except Exception as e:
                 # 如果出现异常，发出错误信号
@@ -78,10 +80,10 @@ class ImagePredictFolderThread(QThread):
     varSignalConnector = pyqtSignal(list)
     error_signal = pyqtSignal(str)
 
-    def __init__(self, functionYolo, predictDatas: list, threadName: str, parent=None):
+    def __init__(self, yoloModel:YoloModel, predictDatas: list, threadName: str, parent=None):
         super().__init__(parent)
         self.predictDatas = predictDatas
-        self.functionYolo = functionYolo
+        self.yoloModel = yoloModel
         self.threadName = threadName
         self.canRunning = True
         self.mutex = QMutex()
@@ -92,20 +94,19 @@ class ImagePredictFolderThread(QThread):
                 # 不取索引的数据，只要前3个
                 index = data[3]
                 data = data[0:3]
-                print("ImagePredictFolderThread:", data)
                 if self.canRunning:
                     # 返回结果：[newimgpath, rectangle_pos, round(float(scores), self.saveMif),
                     # self.inf[int(classes)], imgshape, orgimgpath, round(runtime,self.saveMif)]
                     # 添加 线程名字，索引
-                    res = self.functionYolo(data)
+                    res = self.yoloModel.run_inference(data)
                     res.extend([self.threadName,index])
-                    print(len(res))
+                    time.sleep(SleepTime)
                     self.varSignalConnector.emit(res)
             except Exception as e:
                 # 如果出现异常，发出错误信号
-                self.error_signal.emit("线程{}异常，图片路径:{} \n data:{},错误:{}".
-                                       format(self.threadName, data[6], data, e))
-
+                cont = "线程{}异常，图片路径:{} \n data:{},错误:{}".format(self.threadName, data[6], data, e)
+                print(cont)
+                self.error_signal.emit(cont)
     def stop(self):
         self.canRunning = False
 
@@ -121,7 +122,7 @@ class ImageLoaderThread(QThread):
         for i, image_path in enumerate(self.image_files):
             pixmap = QPixmap(str(image_path))
             # 延迟加载，避免卡顿
-            time.sleep(0.002)
+            time.sleep(SleepTime)
             self.varSignalConnector.emit(pixmap, i)
 
 
@@ -137,5 +138,5 @@ class loadPredictionImageThread(QThread):
     def run(self):
         pixmap = QPixmap(self.predictionFile)
         # 延迟加载，避免卡顿
-        time.sleep(0.005)
+        time.sleep(SleepTime)
         self.varSignalConnector.emit(pixmap, self.index, self.threadName)
