@@ -1,3 +1,4 @@
+import copy
 import os
 import time
 import sys
@@ -6,6 +7,7 @@ from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtCore import Qt
 from ultralytics import YOLO
+
 
 def modifySuffix(orgPath: str, r=".jpg"):
     # 获取文件名和扩展名
@@ -18,11 +20,13 @@ def modifySuffix(orgPath: str, r=".jpg"):
 import os
 from ultralytics import YOLO
 
-class YoloModel(object):
+
+class YoloModel:
     def __init__(self):
         self.yolo = YOLO("./best.pt", task="detect")
         self.inf = {0: '11 ', 1: '02 ', 2: '07 ', 3: '03 ', 4: '2 ', 5: '13 ', 6: '25 ', 7: '28 ', 8: '04 '}
         self.saveMif = 3
+
     def run_inference(self, data: list):
         print("run_inference:", data)
         orgimgpath = data[0]
@@ -31,17 +35,11 @@ class YoloModel(object):
         iou = data[1]
         conf = data[2]
         try:
-            print("YOLO object attributes before predict:", dir(self.yolo))  # 打印 YOLO 对象的属性
-            results = self.yolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
-            print("Results object:", results)
-            print("Results object attributes:", dir(results[0]))  # 打印结果对象的属性
-        except AttributeError as e:
-            print("AttributeError occurred:", e)
-            raise  # 重新抛出异常以便在调用者中处理
+            tempYolo = copy.deepcopy(self.yolo)
+            results = tempYolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
         except Exception as e:
-            print("Exception occurred during prediction:", e)
-            raise  # 重新抛出异常以便在调用者中处理
-
+            print("Exception occurred ( tempYolo.predict ):", e)
+            return [None, None, None, None, None, orgimgpath, None]
         imgshape = results[0].orig_shape
         runtime = results[0].speed['inference']
         save_dir = results[0].save_dir
@@ -50,7 +48,6 @@ class YoloModel(object):
 
         if len(results[0].boxes) <= 0:
             return [newimgpath, None, None, None, imgshape, orgimgpath, runtime]
-
         rectangle_pos = {
             "x": round(results[0].boxes.xyxy[0][0].item(), self.saveMif),
             "y": round(results[0].boxes.xyxy[0][1].item(), self.saveMif),
@@ -61,7 +58,7 @@ class YoloModel(object):
         scores = results[0].boxes.conf  # 置信度分数
         classes = results[0].boxes.cls  # 类别索引
 
-        return [newimgpath, rectangle_pos, round(float(scores), self.saveMif), self.inf[int(classes)],
+        return [newimgpath, rectangle_pos, round(float(scores[0]), self.saveMif), self.inf[int(classes[0])],
                 imgshape, orgimgpath, round(runtime, self.saveMif)]
 
 

@@ -87,7 +87,7 @@ class FolderInterface(QFrame):
         self.maxImgCount = 0
         self.imgFilesPath = []
         self.allImgInfo = {}
-        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=5)  # 异步线程数目
+        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=2)  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
@@ -149,32 +149,37 @@ class FolderInterface(QFrame):
             predictWork = ImagePredictFolderThread(self.yolo.run_inference, predictDatas[i],
                                                    threadName=tempName)
             predictWork.varSignalConnector.connect(self._finishOneTask)
+            predictWork.error_signal.connect(self.errorSignalThread)
             # 保存线程
             self.threadWorks.addPreThread(tempName, predictWork)
             predictWork.start()
 
     def _finishOneTask(self, predictResultsList: list):
-        [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath,
-         inferenceTime, threadName, index]  = predictResultsList
-        if rectanglePosDict is None :
+        try:
+            [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath,
+             inferenceTime, threadName, index] = predictResultsList
+        except Exception as e:
+            print("_finishOneTask:错误:", e)
+            return
+        if rectanglePosDict is None and savePath is not None:
             # 当前结果预测异常显示
-            self.foldPlayCards.InfoBarErr()
-        else:
-            pass
-            self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
-            pre_info = {"save_dir": savePath,
-                        "rectangle_pos": rectanglePosDict,
-                        "scores": scores,
-                        "classes": classes,
-                        "inference_time": inferenceTime}
-            self._imgAddInfo(index=index, key="pre", info=pre_info)
-            thread = loadPredictionImageThread(savePath, index=index, threadName=threadName, parent=None)
-            thread.varSignalConnector.connect(self._addPredictImage)
-            self.threadWorks.addLoadimgThread(name=threadName, work=thread)
-            thread.start()
+            self.foldPlayCards.InfoBarErr(infStr="第{}行图预测结果尚未确定".format(index + 1), parent=self.leftRegion.leftPanel)
+        self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
+        pre_info = {"save_dir": savePath,
+                    "rectangle_pos": rectanglePosDict,
+                    "scores": scores,
+                    "classes": classes,
+                    "inference_time": inferenceTime}
+        self._imgAddInfo(index=index, key="pre", info=pre_info)
+        thread = loadPredictionImageThread(savePath, index=index, threadName=threadName, parent=None)
+        thread.varSignalConnector.connect(self._addPredictImage)
+        self.threadWorks.addLoadimgThread(name=threadName, work=thread)
+        thread.start()
 
         # self.foldPlayCards.computationPredictCard()
 
+    def errorSignalThread(self, e):
+        self.foldPlayCards.InfoSignalThread(parent=self.leftRegion.leftPanel, instr=e)
     def resizeEvent(self, event: QResizeEvent):
         """窗口大小改变时更新所有图片的大小"""
         super().resizeEvent(event)

@@ -1,7 +1,8 @@
+import copy
 import os
 import time
 import sys
-from PyQt5.QtCore import pyqtSignal, QThread
+from PyQt5.QtCore import pyqtSignal, QThread, QMutex
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtCore import Qt
 from ultralytics import YOLO
@@ -27,8 +28,10 @@ class YoloModel:
         iou = data[1]
         conf = data[2]
         try:
+            yolo = copy.copy(self.yolo)
             print("YOLO object attributes before predict:", dir(self.yolo))  # 打印 YOLO 对象的属性
-            results = self.yolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
+            results =yolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
+            # 在这里初始化 YOLO 实例
             print("Results object:", results)
             print("Results object attributes:", dir(results[0]))  # 打印结果对象的属性
         except AttributeError as e:
@@ -46,7 +49,6 @@ class YoloModel:
 
         if len(results[0].boxes) <= 0:
             return [newimgpath, None, None, None, imgshape, orgimgpath, runtime]
-
         rectangle_pos = {
             "x": round(results[0].boxes.xyxy[0][0].item(), self.saveMif),
             "y": round(results[0].boxes.xyxy[0][1].item(), self.saveMif),
@@ -72,11 +74,15 @@ class InferenceThread(QThread):
         self.model = model
         self.data = data
         self.thread_id = thread_id
-
+        # 初始化锁
+        self.mutex = QMutex()
     def run(self):
         try:
             # 调用模型的推理方法
+            # 上锁
+
             result = self.model.run_inference(self.data)
+
             # 发出信号，传递结果
             self.result_signal.emit([self.thread_id] + result)
         except Exception as e:
@@ -111,21 +117,20 @@ class MainWindow(QMainWindow):
         self.model3 = YoloModel()
 
     def start_inference(self):
-        # 示例数据
-        data1 = ['resource\\some_img\\wallhaven-jx25qw.jpg', 0.333, 0.583]
-        data2 = ['resource\\some_img\\wallhaven-jx25qw2.jpg', 0.333, 0.583]
-        data3 = ['resource\\some_img\\wallhaven-jx25qw3.jpg', 0.333, 0.583]
-
-        # 创建并启动推理线程
-
-        self.thread1 = InferenceThread(self.model1, data1, 0)
-        self.thread1.result_signal.connect(self.on_inference_result)
-        self.thread1.error_signal.connect(self.on_error)
-        self.thread1.start()
-        self.thread2= InferenceThread(self.model2, data2, 2)
-        self.thread2.result_signal.connect(self.on_inference_result)
-        self.thread2.error_signal.connect(self.on_error)
-        self.thread2.start()
+        data_list = [
+            ['resource\\some_img\\wallhaven-jx25qw.jpg', 0.333, 0.583],
+            ['resource\\some_img\\1.jpg', 0.333, 0.583],
+            ['resource/some_img/wallhaven-yx1ep7.jpg', 0.333, 0.583]
+        ]
+        self.threads = []
+        # 使用for循环创建并启动推理线程
+        for i, data in enumerate(data_list):
+            model = getattr(self, f"model{i + 1}")  # 根据索引动态选择模型
+            thread = InferenceThread(model, data, i)
+            thread.result_signal.connect(self.on_inference_result)
+            thread.error_signal.connect(self.on_error)
+            self.threads.append(thread)
+            thread.start()
 
 
 
