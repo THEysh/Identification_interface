@@ -9,10 +9,6 @@ class Status(Enum):
     PREDICTED = "预测完成"
 
 
-class StateMachineError(Exception):
-    """状态机错误"""
-    pass
-
 
 class PredictionStateMachine:
     def __init__(self):
@@ -33,21 +29,24 @@ class PredictionStateMachine:
         if self._status == Status.PREDICTING: return;
         # 开始预测-》预测中
         if self._status != Status.NOT_PREDICTED :
-            raise StateMachineError(f"当前状态为 {self._status.value}，无法开始预测")
+            print(f"当前状态为 {self._status.value}，无法开始预测")
+            return
         self._status = Status.PREDICTING
         print(f"状态已更新为 {self._status.value}")
 
-    def complete_prediction(self):
+    def predicting_completed(self):
         if self._status == Status.PREDICTED: return
         # 预测中-》完成预测
         if self._status != Status.PREDICTING:
-            raise StateMachineError(f"当前状态为 {self._status.value}，无法完成预测")
+            print(f"当前状态为 {self._status.value}，无法转换为完成预测状态")
+            return
         self._status = Status.PREDICTED
         print(f"状态已更新为 {self._status.value}")
 
     def reset(self):
         if self._status == Status.NOT_PREDICTED:
-            raise StateMachineError(f"当前状态已为 {self._status.value}，无需重置")
+            print(f"当前状态已为 {self._status.value}，无需重置")
+            return
         self._status = Status.NOT_PREDICTED
         print(f"状态已重置为 {self._status.value}")
 
@@ -57,18 +56,26 @@ class PredictionStateMachine:
         if self._status == Status.PREDICTING:
             self._status = Status.PREDICT_STOPING
         else:
-            raise StateMachineError(f"当前状态为 {self._status.value}，无法停止预测")
+            print(f"当前状态为 {self._status.value}，无法停止预测")
 
 
     def stoping_notprediction(self):
         if self._status == Status.NOT_PREDICTED: return
         # 停止中-》开始预测
         if self._status != Status.PREDICT_STOPING:
-            raise StateMachineError(f"当前状态为 {self._status.value}，无法停止预测")
+            print(f"当前状态为 {self._status.value}，无法切换为开始预测状态")
+            return
         else:
             self._status = Status.NOT_PREDICTED
             print(f"状态已更新为 {self._status.value}")
 
+    def PredictionCompletionToStartPrediction(self):
+        if self._status == Status.NOT_PREDICTED: return
+        if self._status == Status.PREDICTED:
+            self._status = Status.NOT_PREDICTED
+        else:
+            print(f"当前状态为 {self._status.value}，无法切换为开始预测状态")
+            return
 
 # 使用示例
 if __name__ == "__main__":
@@ -82,8 +89,4 @@ if __name__ == "__main__":
     sm.complete_prediction()
     print(sm)
     # 尝试重置状态机
-    try:
-        sm.reset()
-    except StateMachineError as e:
-        print(f"异常处理: {e}")
-    print(sm)
+

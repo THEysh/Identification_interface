@@ -21,42 +21,33 @@ class YoloModel:
         self.saveMif = 3
 
     def run_inference(self, data: list):
-        print("----YoloModel开始,data:{}----".format(data) * 3)
-
-        orgimgpath = data[0]
-        if not isinstance(orgimgpath, str):
+        print("----YoloModel开始,data:{}----".format(data))
+        orgImgPath = data[0]
+        if not isinstance(orgImgPath, str):
             raise TypeError("路径必须要是字符串")
         iou = data[1]
         conf = data[2]
-        print("开始")
         try:
             time.sleep(random.random()*0.05)
-            results = self.yolo.predict(source=orgimgpath, show=False, save=True, iou=iou, conf=conf)
+            results = self.yolo.predict(source=orgImgPath, show=False, save=True, iou=iou, conf=conf)
         except:
-
-            return [None, None, None, None, None, orgimgpath, None]
-        imgshape = results[0].orig_shape
-
+            return [None, None, None, None, None, orgImgPath, None]
+        imgShape = results[0].orig_shape
         runtime = results[0].speed['inference']
-
         save_dir = results[0].save_dir
-
-        newimgName = modifySuffix(orgimgpath, r=".jpg")
-
-        newimgpath = os.path.join(save_dir, newimgName)
-
+        newImgName = modifySuffix(orgImgPath, r=".jpg")
+        newImgPath = os.path.join(save_dir, newImgName)
         if len(results[0].boxes) <= 0:
-            return [newimgpath, None, None, None, imgshape, orgimgpath, runtime]
-            print("未识别")
+            print("path:{},未识别".format(newImgPath))
+            return [newImgPath, None, None, None, imgShape, orgImgPath, runtime]
         rectangle_pos = {
             "x": round(results[0].boxes.xyxy[0][0].item(), self.saveMif),
             "y": round(results[0].boxes.xyxy[0][1].item(), self.saveMif),
             "width": round((results[0].boxes.xyxy[0][2] - results[0].boxes.xyxy[0][0]).item(), self.saveMif),
             "height": round((results[0].boxes.xyxy[0][3] - results[0].boxes.xyxy[0][1]).item(), self.saveMif)
         }
-
         scores = results[0].boxes.conf
         classes = results[0].boxes.cls
-        print("-" * 100)
-        return [newimgpath, rectangle_pos, round(float(scores[0]), self.saveMif), self.inf[int(classes[0])],
-                imgshape, orgimgpath, round(runtime, self.saveMif)]
+        print("YoloModel结束"+"-" * 100)
+        return [newImgPath, rectangle_pos, round(float(scores[0]), self.saveMif), self.inf[int(classes[0])],
+                imgShape, orgImgPath, round(runtime, self.saveMif)]

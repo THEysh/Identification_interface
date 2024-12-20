@@ -56,7 +56,7 @@ class InfoDisplayCards:
     def computationLoadImageCard(self, parent=None):
         parent = self._getParent(parent)
         if self._stateLoadImg:
-            self._stateLoadImg.setContent('结束啦' + getEmj())
+            self._stateLoadImg.setContent('结束啦~' + getEmj())
             self._stateLoadImg.setState(True)
             self._stateLoadImg = None
         else:
@@ -67,7 +67,7 @@ class InfoDisplayCards:
     def computationPredictCard(self, parent=None):
         parent = self._getParent(parent)
         if self._predictStatus:
-            self._predictStatus.setContent('结束啦' + getEmj())
+            self._predictStatus.setContent('结束啦~' + getEmj())
             self._predictStatus.setState(True)
             self._predictStatus = None
         else:

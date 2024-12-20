@@ -11,10 +11,9 @@ from qframelesswindow import StandardTitleBar
 from home import HomeInterface
 from foldeRinterface import FolderInterface
 from ultralytics import YOLO
-
 from yoloMod import YoloModel
 
-PORT = 8000
+
 
 class Widget(QFrame):
     def __init__(self, text: str, parent=None):
@@ -86,8 +85,8 @@ class Window(FluentWindow):
             '古代铸字历史悠久，铸字艺术独具特色，例如青铜器、陶瓷器、度量衡器等上面都有铸字。这些铸字不仅代表着当时的文字形式，也蕴含着丰富的历史文化信息。🚀',
             self
         )
-        w.yesButton.setText('科技')
-        w.cancelButton.setText('引领进步')
+        w.yesButton.setText('科技引领进步')
+        w.cancelButton.setText('科技引领进步')
 
         if w.exec():
             pass
