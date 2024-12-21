@@ -22,6 +22,7 @@ class ResultDisplayCard():
         # 保留几位小数
         self.roundNumber = 2
         self._setOriginalList()
+        self.CoordinatePointBtn = PushButton("位置: "+ getEmj() + " ", self.panel)
         self.rList.append(PushButton(self.originalList[0], self.panel))
         self.rList.append(PushButton(self.originalList[1], self.panel))
         self.rList.append(PushButton(self.originalList[2], self.panel))
@@ -49,7 +50,13 @@ class ResultDisplayCard():
         newNum = round(num,self.roundNumber)
         return str(newNum)
 
-    def show(self, saveDir, rectanglePos, scores, classes, inferenceTime):
+    def _showOrgCoordinatePoint(self, CoordinatePoint):
+        new_tuple = tuple(item + 1 for item in CoordinatePoint)
+        self.CoordinatePointBtn.setText("位置: " + getEmj() + str(new_tuple))
+
+    def show(self, saveDir, rectanglePos, scores, classes, inferenceTime, CoordinatePoint= None):
+        if CoordinatePoint is not None:
+            self._showOrgCoordinatePoint(CoordinatePoint)
         scores = self.dataProcess(float(scores*100)) + "%" if scores is not None else ""
         classes = self.dataProcess(float(inferenceTime)) if classes is not None else ""
         ans = [classes, scores, inferenceTime]
@@ -67,7 +74,6 @@ class ResultDisplayCard():
                 tempStr = self.originalList[i]
                 new_inf = _replace_last_occurrence(tempStr, " ", str(ans[i]))
                 self.rList[i].setText(new_inf)
-
         except Exception as e:
             InfoBar.warning(
                 title='警告',
@@ -79,6 +85,20 @@ class ResultDisplayCard():
                 parent=self.panel
             )
 
-    def addwidget(self, layout: QLayout):
+    def orgShow(self,path, CoordinatePoint):
+        self._showOrgCoordinatePoint(CoordinatePoint)
+        for i in range(len(self.originalList)):
+            # 如果是文件路径的情况（最后一个）：
+            if i==len(self.originalList)-1:
+                tempStr = self.originalList[i]
+                new_inf = _replace_last_occurrence(tempStr, " ", str(path))
+            else:
+                new_inf = self.originalList[i]
+            self.rList[i].setText(new_inf)
+
+    def addwidget(self, layout: QLayout, isAddCoordinatePointBtn=False):
+        layout.addWidget(self.CoordinatePointBtn)
+        if isAddCoordinatePointBtn is False:
+            self.CoordinatePointBtn.hide()
         for r in self.rList:
             layout.addWidget(r)

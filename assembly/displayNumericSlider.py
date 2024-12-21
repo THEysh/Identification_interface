@@ -14,7 +14,6 @@ class DisplayNumericSlider(QFrame):
         self.slider.setRange(0, 1000)
         self.slider.setValue(random.randint(300,700))
         self.slider.valueChanged.connect(lambda :self.changevalue())
-
         self.valueLabel = StrongBodyLabel()
         self.changevalue()
         _layout.addWidget(self.valueLabel)

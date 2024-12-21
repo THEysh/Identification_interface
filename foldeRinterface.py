@@ -39,7 +39,6 @@ class _LeftContent():
         # 图片数量
         self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 0", self.leftPanel)
         self.preImageCountBtn = PushButton(FIF.PHOTO, "预测图片数量: 0", self.leftPanel)
-
         self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
         self.modelInputData = ["iou", "conf"]
@@ -58,10 +57,9 @@ class _LeftContent():
         self.leftLayout.addWidget(self.preImageCountBtn)
         self.slider1.addwidget(self.leftLayout)
         self.slider2.addwidget(self.leftLayout)
-        self.resultInfoCard.addwidget(self.leftLayout)
+        self.resultInfoCard.addwidget(self.leftLayout,True)
         self.leftLayout.addWidget(self.folderInfoBtn)
         self.leftLayout.addWidget(self.timeClock)
-
 
     def updateImgCount(self, newNum:int):
         self.imageCountBtn.setText(f"图片数量: {str(newNum).zfill(3)}")
@@ -78,8 +76,8 @@ class _LeftContent():
             return 0
 
 class _RightContent(SmoothResizingScrollArea):
-    def __init__(self, frame: QFrame):
-        super().__init__(frame)
+    def __init__(self, parent: QFrame):
+        super().__init__(parent)
         # 设置右侧滚动区域
         self.panel = QFrame()
         self.layout = QGridLayout(self.panel)
@@ -169,7 +167,13 @@ class FolderInterface(QFrame):
         if resDic is not None:
             # 显示图片相关信息
             print("showInfoData:", resDic)
-
+            if key=="org":
+                self.leftRegion.resultInfoCard.orgShow(resDic['path'],(index, 0))
+            elif key=="pre":
+                pass
+                # self.resultInfoCard.Show()
+            else:
+                return
     @property
     def getslidersValue(self):
         iou, conf = self.leftRegion.slider1.getvalue, self.leftRegion.slider2.getvalue

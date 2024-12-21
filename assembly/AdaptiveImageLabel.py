@@ -113,4 +113,3 @@ class AdaptiveImageLabel(ImageLabel):
         menu.addMenu(submenu)
         # show menu
         menu.exec(e.globalPos(), aniType=MenuAnimationType.DROP_DOWN)
-

@@ -1,80 +1,41 @@
 import sys
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel, QPushButton
+from qfluentwidgets import PushButton
 
-class DataInfo(QObject):
-    total_img_count_changed = pyqtSignal(int)
-    pre_img_count_changed = pyqtSignal(int)
+from assembly.AdaptiveImageLabel import AdaptiveImageLabel
 
-    def __init__(self):
-        super().__init__()
-        self.total_img_count = 0
-        self.pre_img_count = 0
 
-    def set_total_img_count(self, count):
-        self.total_img_count = count
-        self.total_img_count_changed.emit(count)
-
-    def set_pre_img_count(self, count):
-        self.pre_img_count = count
-        self.pre_img_count_changed.emit(count)
-
-class _LeftContent(QWidget):
-    def __init__(self, parent=None, data_info: DataInfo = None):
+class LabelBtn(QFrame):
+    def __init__(self, index: int, key='org', parent=None):
         super().__init__(parent)
-        self.data_info = data_info
-        self.initUI()
+        _layout = QVBoxLayout()
+        self.Label = AdaptiveImageLabel(index, key)
+        self.Label.setCustomImage("resource/painting_girl.png")
+        self.button = PushButton("点击我", self)
+        _layout.addWidget(self.Label)
+        _layout.addWidget(self.button)
+        self.setLayout(_layout)
 
-    def initUI(self):
-        layout = QVBoxLayout(self)
-        self.total_img_label = QLabel("图片数量: 0", self)
-        self.pre_img_label = QLabel("预测图片数量: 0", self)
-        layout.addWidget(self.total_img_label)
-        layout.addWidget(self.pre_img_label)
-
-        # 连接信号和槽
-        self.data_info.total_img_count_changed.connect(self.update_total_img_count)
-        self.data_info.pre_img_count_changed.connect(self.update_pre_img_count)
-
-    def update_total_img_count(self, new_count):
-        self.total_img_label.setText(f"图片数量: {str(new_count).zfill(3)}")
-
-    def update_pre_img_count(self, new_count):
-        self.pre_img_label.setText(f"预测图片数量: {str(new_count).zfill(3)}")
-
-class FolderInterface(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.data_info = DataInfo()
-        self.initUI()
+        self.setWindowTitle("LabelBtn 示例")
+        self.setGeometry(100, 100, 400, 300)
+        # 创建一个中心 widget
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        # 创建一个垂直布局来管理多个 LabelBtn 实例
+        _vlayout = QVBoxLayout(central_widget)
 
-    def initUI(self):
-        layout = QVBoxLayout(self)
-        self.left_region = _LeftContent(parent=self, data_info=self.data_info)
-        self.load_img_btn = QPushButton("加载图片", self)
-        self.predict_img_btn = QPushButton("预测图片", self)
-        layout.addWidget(self.left_region)
-        layout.addWidget(self.load_img_btn)
-        layout.addWidget(self.predict_img_btn)
+        # 创建多个 LabelBtn 实例并添加到布局中
+        for i in range(1):
+            label_btn = LabelBtn(i, key='示例')
+            _vlayout.addWidget(label_btn)
+        # 设置布局
+        central_widget.setLayout(_vlayout)
 
-        self.load_img_btn.clicked.connect(self.load_img)
-        self.predict_img_btn.clicked.connect(self.predict_img)
-
-    def load_img(self):
-        # 模拟加载图片
-        new_img_count = 10  # 假设加载了10张图片
-        self.data_info.set_total_img_count(new_img_count)
-
-    def predict_img(self):
-        # 模拟预测图片
-        if self.data_info.total_img_count > 0:
-            new_pre_img_count = 5  # 假设预测了5张图片
-            self.data_info.set_pre_img_count(new_pre_img_count)
-        else:
-            print("没有图片可以预测")
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = FolderInterface()
+    window = MainWindow()
     window.show()
     sys.exit(app.exec_())
