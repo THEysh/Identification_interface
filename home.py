@@ -23,18 +23,17 @@ class _LeftContent:
         self.leftPanel.setMaximumWidth(self.MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
-        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou ", parent=self.leftPanel)
+        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
-        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.7), self.leftPanel)
-        self.timeClock = ClockShow(self.leftPanel)
+        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.65), self.leftPanel)
+
         self._addWidgets()
 
     def _addWidgets(self):
         self.leftLayout.addWidget(self.loadImage1Btn)
         self.slider1.addwidget(self.leftLayout)
         self.slider2.addwidget(self.leftLayout)
-        self.resultInfoCard.addwidget(self.leftLayout)
-        self.leftLayout.addWidget(self.timeClock)
+        self.leftLayout.addWidget(self.resultInfoCard)
 
 class _RightContent:
     def __init__(self, frame: QFrame):
@@ -42,8 +41,8 @@ class _RightContent:
         self.rightLayout = FlowLayout(self.rightPanel, needAni=True)
         self.imageLabel1 = DraggableImageLabel(self.rightPanel)
         self.imageLabel2 = DraggableImageLabel(self.rightPanel)
-        self.imageLabel1.setCustomImage('resource/painting_girl.png')
-        self.imageLabel2.setCustomImage('resource/painting_girl.png')
+        self.imageLabel1.setCustomImage('resource/cut_RGB_20240719084737.png')
+
         self.imageLabel1.setBorderRadius(10, 10, 10, 10)
         self.imageLabel2.setBorderRadius(10, 10, 10, 10)
         self._addWidgets()

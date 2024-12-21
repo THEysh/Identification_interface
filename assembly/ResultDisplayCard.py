@@ -1,11 +1,12 @@
 import time
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QLayout
+from PyQt5.QtWidgets import QFrame, QLayout, QGridLayout, QWidget
 from qfluentwidgets import PushButton, InfoBar, InfoBarPosition
 from assembly.autoResizePushButton import AutoResizePushButton
+from assembly.clockShow import ClockShow
 from assembly.common import getEmj, getSadnessEmj
-
+from qfluentwidgets import FluentIcon as FIF
 
 def _replace_last_occurrence(s, old, new):
     parts = s.rsplit(old, 1)  # 从右边分割字符串，最多分割一次
@@ -14,10 +15,11 @@ def _replace_last_occurrence(s, old, new):
     return parts[0] + new + parts[1]  # 替换最后一次出现的 old
 
 
-class ResultDisplayCard():
-    def __init__(self, widthLimit: int, frame: QFrame, ):
-        self.panel = frame
-        self.rList = []
+
+class ResultDisplayCard(QWidget):
+    def __init__(self, widthLimit: int, parent: QWidget = None):
+        super().__init__(parent)
+        self.panel = parent
         self.widthLimit = widthLimit
         # 保留几位小数
         self.roundNumber = 2
@@ -29,26 +31,40 @@ class ResultDisplayCard():
         self.yBtn = PushButton("y坐标: " + getEmj() + " ", self.panel)
         self.widthBtn = PushButton("宽: " + getEmj() + " ", self.panel)
         self.heightBtn = PushButton("高: " + getEmj() + " ", self.panel)
-        self.pathBtn = AutoResizePushButton(self.widthLimit, None,
-                                            "图路径: " + getEmj() + " ",self.panel,widthLimitFactor=1.0)
+        self.pathBtn = AutoResizePushButton(self.widthLimit, FIF.PHOTO,
+                                            "图路径: " + getEmj() + " ",self.panel, widthLimitFactor=1.0)
+        # 原图文件夹
+        self.folderInfoBtn = AutoResizePushButton(self.widthLimit,
+                                                  FIF.FOLDER, " 未选择 ", self.panel,widthLimitFactor=1.0)
+        self.folderInfoBtn.setVisible(False)
+        self.timeClock = ClockShow(self.panel)
+        # 创建布局
+        self.layout = QGridLayout(self)
+        # 将控件添加到布局中
+        self.layout.addWidget(self.CoordinatePointBtn, 0, 0)
+        self.layout.addWidget(self.ImgDetectorBtn, 0, 2)
+        self.layout.addWidget(self.xBtn, 1, 0)
+        self.layout.addWidget(self.yBtn, 1, 2)
+        self.layout.addWidget(self.widthBtn, 2, 0)
+        self.layout.addWidget(self.heightBtn, 2, 2)
+        # 位置信息文本
+        self.layout.addWidget(self.confBtn, 3, 0)
+        self.layout.addWidget(self.runTimeBtn, 3, 2)
+        self.layout.addWidget(self.pathBtn, 4, 0, 1, 3)  # 横跨3列
+        self.layout.addWidget(self.folderInfoBtn, 5, 0, 1, 3)
+        self.layout.addWidget(self.timeClock, 6, 0, 1, 2)
+        # 设置组件布局
+        self.setLayout(self.layout)
 
-    def addwidget(self, layout: QLayout, isAddCoordinatePointBtn=False):
-        layout.addWidget(self.CoordinatePointBtn)
-        layout.addWidget(self.pathBtn)
-        layout.addWidget(self.runTimeBtn)
-        if isAddCoordinatePointBtn is False:
-            self.CoordinatePointBtn.hide()
-        layout.addWidget(self.ImgDetectorBtn)
-        layout.addWidget(self.confBtn)
-        layout.addWidget(self.xBtn)
-        layout.addWidget(self.yBtn)
-        layout.addWidget(self.widthBtn)
-        layout.addWidget(self.heightBtn)
-
-
-    def dataProcess(self, num:float):
-        newNum = round(num,self.roundNumber)
+    def dataProcess(self, num:float, r = None):
+        if r is None:
+            r = self.roundNumber
+        newNum = round(num, r )
         return str(newNum)
+
+    def displayOriginalDir(self,originalDir):
+        self.folderInfoBtn.setText(f"原始图文件夹: {originalDir}")
+        self.folderInfoBtn.setVisible(True)
 
     def preShow(self, redDict:dict):
         if redDict['path'] is not None:
@@ -80,7 +96,7 @@ class ResultDisplayCard():
         else:
             self.setImgDetectorBtnText('')
         if redDict['inference_time'] is not None:
-            runtime = self.dataProcess(float(redDict['inference_time']))
+            runtime = self.dataProcess(float(redDict['inference_time']), r=0)
             self.setRunTimeBtnText(runtime)
         else:
             self.setRunTimeBtnText('')
@@ -92,7 +108,7 @@ class ResultDisplayCard():
 
     def orgShow(self,resDic:dict):
         try:
-            self.setCoordinatePointBtnText((resDic['col'],resDic['row']))
+            self.setCoordinatePointBtnText((resDic['row'],resDic['col']))
         except:
             self.setCoordinatePointBtnText('')
         self.setImgDetectorBtnText("")
@@ -109,7 +125,7 @@ class ResultDisplayCard():
 
     def homeShow(self, savePath, rectanglePosDict, scores, classes, inferenceTime):
         if inferenceTime is not None:
-            self.setRunTimeBtnText(self.dataProcess(float(inferenceTime)))
+            self.setRunTimeBtnText(self.dataProcess(float(inferenceTime), 0))
         else:
             self.setRunTimeBtnText('')
         if classes is not None:
@@ -166,7 +182,7 @@ class ResultDisplayCard():
         return self.runTimeBtn.text()
 
     def setRunTimeBtnText(self, text: str):
-        self.runTimeBtn.setText("识别用时: " + getEmj() + " " + text)
+        self.runTimeBtn.setText("识别用时: " + getEmj() + " " + text + "ms")
 
     def getXBtnText(self) -> str:
         return self.xBtn.text()

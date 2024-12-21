@@ -1,7 +1,6 @@
 # coding:utf-8
 import copy
 import re
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QGridLayout)
@@ -42,10 +41,7 @@ class _LeftContent():
         self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
         self.modelInputData = ["iou", "conf"]
-        self.folderInfoBtn = AutoResizePushButton(self.MaximumWidth, FIF.FOLDER, " 未选择 ", self.leftPanel)
-        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.7), self.leftPanel)
-        self.timeClock = ClockShow(self.leftPanel)
-
+        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.65), self.leftPanel)
         self._addWidget()
 
     def _addWidget(self):
@@ -57,9 +53,8 @@ class _LeftContent():
         self.leftLayout.addWidget(self.preImageCountBtn)
         self.slider1.addwidget(self.leftLayout)
         self.slider2.addwidget(self.leftLayout)
-        self.resultInfoCard.addwidget(self.leftLayout,True)
-        self.leftLayout.addWidget(self.folderInfoBtn)
-        self.leftLayout.addWidget(self.timeClock)
+        self.leftLayout.addWidget(self.resultInfoCard)
+
 
     def updateImgCount(self, newNum:int):
         self.imageCountBtn.setText(f"图片数量: {str(newNum).zfill(3)}")
@@ -248,6 +243,7 @@ class FolderInterface(QFrame):
         )
         if not folderPath:
             return
+
         self._loadimg(folderPath)
 
     def _loadimg(self, folder_path):
@@ -255,7 +251,7 @@ class FolderInterface(QFrame):
         # 清除现有图片
         self._clearImages()
         # 更新文件夹信息
-        self.leftRegion.folderInfoBtn.setText(f"原始图文件夹: {folder_path}")
+        self.leftRegion.resultInfoCard.displayOriginalDir(folder_path)
         # 获取所有图片文件
         image_files = []
         for ext in self.rightRegion.image_extensions:

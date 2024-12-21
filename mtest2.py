@@ -1,41 +1,24 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel, QPushButton
-from qfluentwidgets import PushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton
 
-from assembly.AdaptiveImageLabel import AdaptiveImageLabel
-
-
-class LabelBtn(QFrame):
-    def __init__(self, index: int, key='org', parent=None):
-        super().__init__(parent)
-        _layout = QVBoxLayout()
-        self.Label = AdaptiveImageLabel(index, key)
-        self.Label.setCustomImage("resource/painting_girl.png")
-        self.button = PushButton("点击我", self)
-        _layout.addWidget(self.Label)
-        _layout.addWidget(self.button)
-        self.setLayout(_layout)
-
-class MainWindow(QMainWindow):
+class MyWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("LabelBtn 示例")
-        self.setGeometry(100, 100, 400, 300)
-        # 创建一个中心 widget
-        central_widget = QWidget(self)
-        self.setCentralWidget(central_widget)
-        # 创建一个垂直布局来管理多个 LabelBtn 实例
-        _vlayout = QVBoxLayout(central_widget)
 
-        # 创建多个 LabelBtn 实例并添加到布局中
-        for i in range(1):
-            label_btn = LabelBtn(i, key='示例')
-            _vlayout.addWidget(label_btn)
-        # 设置布局
-        central_widget.setLayout(_vlayout)
+        # 创建网格布局
+        layout = QGridLayout()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+        # 添加按钮到布局
+        layout.addWidget(QPushButton('Button 1'), 0, 0)  # 第1行，第1列
+        layout.addWidget(QPushButton('Button 2'), 0, 1)  # 第1行，第2列
+        layout.addWidget(QPushButton('Button 3'), 1, 0, 1, 2)  # 第2行，第1列，跨越2列
+
+        # 设置布局到窗口
+        self.setLayout(layout)
+
+        self.setWindowTitle('QGridLayout Example')
+        self.show()
+
+if __name__ == '__main__':
+    app = QApplication([])
+    window = MyWindow()
+    app.exec_()
