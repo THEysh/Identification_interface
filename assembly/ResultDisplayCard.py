@@ -21,84 +21,179 @@ class ResultDisplayCard():
         self.widthLimit = widthLimit
         # 保留几位小数
         self.roundNumber = 2
-        self._setOriginalList()
         self.CoordinatePointBtn = PushButton("位置: "+ getEmj() + " ", self.panel)
-        self.rList.append(PushButton(self.originalList[0], self.panel))
-        self.rList.append(PushButton(self.originalList[1], self.panel))
-        self.rList.append(PushButton(self.originalList[2], self.panel))
-        self.rList.append(PushButton(self.originalList[3], self.panel))
-        self.rList.append(PushButton(self.originalList[4], self.panel))
-        self.rList.append(PushButton(self.originalList[5], self.panel))
-        self.rList.append(PushButton(self.originalList[6], self.panel))
-        self.rList.append(AutoResizePushButton(self.widthLimit, None,
-                                               self.originalList[7],
-                                               self.panel,
-                                               widthLimitFactor=1.0, ))
+        self.ImgDetectorBtn = PushButton("识别结果: " + getEmj() + " ", self.panel)
+        self.confBtn = PushButton("置信度: " + getEmj() + " ", self.panel)
+        self.runTimeBtn = PushButton("识别用时: " + getEmj() + " ", self.panel)
+        self.xBtn = PushButton("x坐标: " + getEmj() + " ", self.panel)
+        self.yBtn = PushButton("y坐标: " + getEmj() + " ", self.panel)
+        self.widthBtn = PushButton("宽: " + getEmj() + " ", self.panel)
+        self.heightBtn = PushButton("高: " + getEmj() + " ", self.panel)
+        self.pathBtn = AutoResizePushButton(self.widthLimit, None,
+                                            "图路径: " + getEmj() + " ",self.panel,widthLimitFactor=1.0)
 
-    def _setOriginalList(self):
-        self.originalList = ["识别结果: " + getEmj() + " ",
-                             "置信度: " + getEmj() + " ",
-                             "识别用时: " + getEmj() + " ",
-                             "x坐标: " + getEmj() + " ",
-                             "y坐标: " + getEmj() + " ",
-                             "宽: " + getEmj() + " ",
-                             "高: " + getEmj() + " ",
-                             "文件路径: " + getEmj() + " ",
-                             ]
+    def addwidget(self, layout: QLayout, isAddCoordinatePointBtn=False):
+        layout.addWidget(self.CoordinatePointBtn)
+        layout.addWidget(self.pathBtn)
+        layout.addWidget(self.runTimeBtn)
+        if isAddCoordinatePointBtn is False:
+            self.CoordinatePointBtn.hide()
+        layout.addWidget(self.ImgDetectorBtn)
+        layout.addWidget(self.confBtn)
+        layout.addWidget(self.xBtn)
+        layout.addWidget(self.yBtn)
+        layout.addWidget(self.widthBtn)
+        layout.addWidget(self.heightBtn)
+
 
     def dataProcess(self, num:float):
         newNum = round(num,self.roundNumber)
         return str(newNum)
 
-    def _showOrgCoordinatePoint(self, CoordinatePoint):
-        new_tuple = tuple(item + 1 for item in CoordinatePoint)
-        self.CoordinatePointBtn.setText("位置: " + getEmj() + str(new_tuple))
-
-    def show(self, saveDir, rectanglePos, scores, classes, inferenceTime, CoordinatePoint= None):
-        if CoordinatePoint is not None:
-            self._showOrgCoordinatePoint(CoordinatePoint)
-        scores = self.dataProcess(float(scores*100)) + "%" if scores is not None else ""
-        classes = self.dataProcess(float(inferenceTime)) if classes is not None else ""
-        ans = [classes, scores, inferenceTime]
-        if rectanglePos is not None:
-            x = self.dataProcess(float(rectanglePos["x"]))
-            y = self.dataProcess(float(rectanglePos["y"]))
-            width = self.dataProcess(float(rectanglePos["width"]))
-            heght = self.dataProcess(float(rectanglePos["height"]))
-            ans.extend([x, y, width, heght])
+    def preShow(self, redDict:dict):
+        if redDict['path'] is not None:
+            self.setPathBtnText(redDict['path'])
         else:
-            ans.extend(["", "", "", ""])
-        ans.append(saveDir)
+            self.setPathBtnText('')
+        if redDict['rectangle_pos'] is not None:
+            x = self.dataProcess(float(redDict['rectangle_pos']['x']))
+            y = self.dataProcess(float(redDict['rectangle_pos']['y']))
+            width = self.dataProcess(float(redDict['rectangle_pos']['width']))
+            height = self.dataProcess(float(redDict['rectangle_pos']['height']))
+            self.setXBtnText(x)
+            self.setYBtnText(y)
+            self.setWidthBtnText(width)
+            self.setHeightBtnText(height)
+        else:
+            self.setXBtnText('')
+            self.setYBtnText('')
+            self.setWidthBtnText('')
+            self.setHeightBtnText('')
+        if redDict['scores'] is not None:
+            conf = self.dataProcess(float(redDict['scores']))
+            self.setConfBtnText(conf)
+        else:
+            self.setConfBtnText('')
+        if redDict['classes'] is not None:
+            classes = redDict['classes']
+            self.setImgDetectorBtnText(classes)
+        else:
+            self.setImgDetectorBtnText('')
+        if redDict['inference_time'] is not None:
+            runtime = self.dataProcess(float(redDict['inference_time']))
+            self.setRunTimeBtnText(runtime)
+        else:
+            self.setRunTimeBtnText('')
+        if redDict['row'] is not None:
+            row = int(redDict['row'])
+            self.setCoordinatePointBtnText((row,1))
+        else:
+            self.setCoordinatePointBtnText('')
+
+    def orgShow(self,resDic:dict):
         try:
-            for i in range(len(self.originalList)):
-                tempStr = self.originalList[i]
-                new_inf = _replace_last_occurrence(tempStr, " ", str(ans[i]))
-                self.rList[i].setText(new_inf)
-        except Exception as e:
-            InfoBar.warning(
-                title='警告',
-                content="数据" + getSadnessEmj() + "\n匹配出现错误" + str(e),
-                orient=Qt.Horizontal,
-                isClosable=True,  # disable close button
-                position=InfoBarPosition.TOP_LEFT,
-                duration=2000,
-                parent=self.panel
-            )
+            self.setCoordinatePointBtnText((resDic['col'],resDic['row']))
+        except:
+            self.setCoordinatePointBtnText('')
+        self.setImgDetectorBtnText("")
+        self.setConfBtnText("")
+        self.setRunTimeBtnText("")
+        self.setXBtnText("")
+        self.setYBtnText("")
+        self.setWidthBtnText("")
+        self.setHeightBtnText("")
+        try:
+            self.setPathBtnText(resDic['path'])
+        except:
+            self.setPathBtnText('')
 
-    def orgShow(self,path, CoordinatePoint):
-        self._showOrgCoordinatePoint(CoordinatePoint)
-        for i in range(len(self.originalList)):
-            # 如果是文件路径的情况（最后一个）：
-            if i==len(self.originalList)-1:
-                tempStr = self.originalList[i]
-                new_inf = _replace_last_occurrence(tempStr, " ", str(path))
-            else:
-                new_inf = self.originalList[i]
-            self.rList[i].setText(new_inf)
+    def homeShow(self, savePath, rectanglePosDict, scores, classes, inferenceTime):
+        if inferenceTime is not None:
+            self.setRunTimeBtnText(self.dataProcess(float(inferenceTime)))
+        else:
+            self.setRunTimeBtnText('')
+        if classes is not None:
+            self.setImgDetectorBtnText(classes)
+        else:
+            self.setImgDetectorBtnText('')
+        if scores is not None:
+            self.setConfBtnText(self.dataProcess(float(scores)))
+        else:
+            self.setConfBtnText('')
+        if savePath is not None:
+            self.setPathBtnText(savePath)
+        else:
+            self.setPathBtnText('')
 
-    def addwidget(self, layout: QLayout, isAddCoordinatePointBtn=False):
-        layout.addWidget(self.CoordinatePointBtn)
-        if isAddCoordinatePointBtn is False:
-            self.CoordinatePointBtn.hide()
-        for r in self.rList:
-            layout.addWidget(r)
+        if rectanglePosDict is not None:
+            x = self.dataProcess(float(rectanglePosDict['x']))
+            y = self.dataProcess(float(rectanglePosDict['y']))
+            width = self.dataProcess(float(rectanglePosDict['width']))
+            height = self.dataProcess(float(rectanglePosDict['height']))
+            self.setXBtnText(x)
+            self.setYBtnText(y)
+            self.setWidthBtnText(width)
+            self.setHeightBtnText(height)
+        else:
+            self.setXBtnText('')
+            self.setYBtnText('')
+            self.setWidthBtnText('')
+            self.setHeightBtnText('')
+
+    def getCoordinatePointBtnText(self) -> str:
+        return self.CoordinatePointBtn.text()
+
+    def setCoordinatePointBtnText(self, CoordinatePoint):
+        if CoordinatePoint == '':
+            self.CoordinatePointBtn.setText("位置: " + getEmj())
+        else:
+            new_tuple = tuple(item + 1 for item in CoordinatePoint)
+            self.CoordinatePointBtn.setText("位置: " + getEmj() + str(new_tuple))
+
+    def getImgDetectorBtnText(self) -> str:
+        return self.ImgDetectorBtn.text()
+
+    def setImgDetectorBtnText(self, text: str):
+        self.ImgDetectorBtn.setText("识别结果: " + getEmj() + " " + text)
+
+    def getConfBtnText(self) -> str:
+        return self.confBtn.text()
+
+    def setConfBtnText(self, text: str):
+        self.confBtn.setText("置信度: " + getEmj() + " " + text)
+
+    def getRunTimeBtnText(self) -> str:
+        return self.runTimeBtn.text()
+
+    def setRunTimeBtnText(self, text: str):
+        self.runTimeBtn.setText("识别用时: " + getEmj() + " " + text)
+
+    def getXBtnText(self) -> str:
+        return self.xBtn.text()
+
+    def setXBtnText(self, text: str):
+        self.xBtn.setText("x: " + getEmj() + " " + text)
+
+    def getYBtnText(self) -> str:
+        return self.yBtn.text()
+
+    def setYBtnText(self, text: str):
+        self.yBtn.setText("y: " + getEmj() + " " + text)
+
+    def getWidthBtnText(self) -> str:
+        return self.widthBtn.text()
+
+    def setWidthBtnText(self, text: str):
+        self.widthBtn.setText("宽: " + getEmj() + " " + text)
+
+    def getHeightBtnText(self) -> str:
+        return self.heightBtn.text()
+
+    def setHeightBtnText(self, text: str):
+        self.heightBtn.setText("高: " + getEmj() + " " + text)
+
+    def getPathBtnText(self) -> str:
+        return self.pathBtn.text()
+
+    def setPathBtnText(self, text: str):
+        self.pathBtn.setText("图路径: " + getEmj() + " " + text)

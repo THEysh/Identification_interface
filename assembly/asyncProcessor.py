@@ -53,10 +53,10 @@ class ImagePredictThread(QThread):
     varSignalConnector = pyqtSignal(list)
     error_signal = pyqtSignal(str)
 
-    def __init__(self, requestsFunction, predictData: list, name: str, parent=None):
+    def __init__(self, yoloModel:YoloModel, predictData: list, name: str, parent=None):
         super().__init__(parent)
         self.predictData = predictData
-        self.requestsFunction = requestsFunction
+        self.yoloModel = yoloModel
         self.name = name
         self.canRunning = True
 
@@ -64,7 +64,7 @@ class ImagePredictThread(QThread):
         if self.canRunning:
             try:
                 # 调用模型的推理方法
-                result = self.requestsFunction(self.predictData)
+                result = self.yoloModel.run_inference(self.predictData)
                 # 发出信号，传递结果
                 time.sleep(SleepTime)
                 self.varSignalConnector.emit(result)

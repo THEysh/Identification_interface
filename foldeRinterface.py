@@ -165,13 +165,10 @@ class FolderInterface(QFrame):
     def imgInfoData(self,index:int, key:str):
         resDic = self.dataInfo.getIndexKeyImgInfo(index,key)
         if resDic is not None:
-            # 显示图片相关信息
-            print("showInfoData:", resDic)
             if key=="org":
-                self.leftRegion.resultInfoCard.orgShow(resDic['path'],(index, 0))
+                self.leftRegion.resultInfoCard.orgShow(resDic)
             elif key=="pre":
-                pass
-                # self.resultInfoCard.Show()
+                self.leftRegion.resultInfoCard.preShow(resDic)
             else:
                 return
     @property
@@ -258,7 +255,7 @@ class FolderInterface(QFrame):
         # 清除现有图片
         self._clearImages()
         # 更新文件夹信息
-        self.leftRegion.folderInfoBtn.setText(f"{folder_path}")
+        self.leftRegion.folderInfoBtn.setText(f"原始图文件夹: {folder_path}")
         # 获取所有图片文件
         image_files = []
         for ext in self.rightRegion.image_extensions:

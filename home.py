@@ -1,4 +1,6 @@
 # coding:utf-8
+import copy
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
 from qfluentwidgets import FlowLayout, StateToolTip, PrimaryPushButton, InfoBar, InfoBarPosition
@@ -88,7 +90,8 @@ class HomeInterface(QFrame):
         # 显示加载模型卡
         self.homeDisplayCard.computationPredictCard()
         predictData = [filePath, iou, conf]
-        self.predictWork = ImagePredictThread(self.yolo.run_inference, predictData, name="predictWork1")
+        tempYoloModel = copy.deepcopy(self.yolo)
+        self.predictWork = ImagePredictThread(tempYoloModel, predictData, name="home_predictWork1")
         self.predictWork.varSignalConnector.connect(self._modelPredictOut)
         self.predictWork.start()
 
@@ -96,7 +99,7 @@ class HomeInterface(QFrame):
         [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath, inferenceTime] = predictResultsList
         if rectanglePosDict is None:
             self.homeDisplayCard.InfoBarErr(parent=self.leftRegion.leftPanel)
-        self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
+        self.leftRegion.resultInfoCard.homeShow(savePath, rectanglePosDict, scores, classes, inferenceTime)
         self.rightRegion.imageLabel2.setCustomImage(savePath)
         self.rightRegion.imageLabel2.zoom_factor = 1.0
         self.homeDisplayCard.computationPredictCard()
