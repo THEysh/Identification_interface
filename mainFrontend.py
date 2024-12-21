@@ -28,17 +28,16 @@ class Widget(QFrame):
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
-        self.yoloMod = YoloModel()
-        self.homeInterface = HomeInterface(self.yoloMod, self)
-        self.folderInterface = FolderInterface(self.yoloMod, self)
-        self.settingInterface = Widget('Setting Interface', self)
         self.splashScreen = None
         self.load()
 
     def initNavigation(self):
+        self.yoloMod = YoloModel()
+        self.homeInterface = HomeInterface(self.yoloMod, self)
+        self.folderInterface = FolderInterface(self.yoloMod, self)
+        # self.settingInterface = Widget('Setting Interface', self)
         self.addSubInterface(self.homeInterface, FIF.HOME, '欢迎回来')
         self.addSubInterface(self.folderInterface, FIF.FOLDER, '文件夹', NavigationItemPosition.SCROLL)
-
         # add custom widget to bottom
         self.navigationInterface.addWidget(
             routeKey='avatar',
@@ -46,8 +45,7 @@ class Window(FluentWindow):
             onClick=self.showMessageBox,
             position=NavigationItemPosition.BOTTOM,
         )
-
-        self.addSubInterface(self.settingInterface, FIF.SETTING, '设置', NavigationItemPosition.BOTTOM)
+        # self.addSubInterface(self.settingInterface, FIF.SETTING, '设置', NavigationItemPosition.BOTTOM)
 
     def load(self):
         # 1. 创建启动页面
@@ -62,18 +60,13 @@ class Window(FluentWindow):
         titleBar.setIcon(self.windowIcon())
         titleBar.setTitle(self.windowTitle())
         self.splashScreen.setTitleBar(titleBar)
-        
         # 2. 在创建其他子页面前先显示主界面
         self.show()
-        
         # 2-1 加载页面
         self.initNavigation()
-        
-        # 3. 加载模型,模拟时间定时器
         loop = QEventLoop(self)
-        QTimer.singleShot(200, loop.quit)
+        QTimer.singleShot(2000, loop.quit)
         loop.exec()
-
         # 4. 隐藏启动页面
         self.splashScreen.finish()
 

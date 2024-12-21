@@ -76,7 +76,7 @@ class AdaptiveImageLabel(ImageLabel):
     def paintEvent(self, event):
         """绘制事件"""
         super().paintEvent(event)
-        if self.is_hovered and self.is_selected:
+        if self.is_selected:
             painter = QPainter(self)
             painter.setRenderHint(QPainter.Antialiasing)  # 使绘图更加平滑
             # 创建一个 QPen 对象并设置其属性
@@ -90,7 +90,7 @@ class AdaptiveImageLabel(ImageLabel):
             painter = QPainter(self)
             painter.setRenderHint(QPainter.Antialiasing)  # 使绘图更加平滑
             # 创建一个 QPen 对象并设置其属性
-            pen = QPen(Qt.black, 5)
+            pen = QPen(Qt.blue, 5)
             pen.setJoinStyle(Qt.RoundJoin)  # 设置线条连接处为圆角
             painter.setPen(pen)
             # 创建一个圆角矩形
