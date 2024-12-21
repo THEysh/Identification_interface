@@ -1,9 +1,10 @@
 from PyQt5.QtGui import QPixmap
+
 from PyQt5.QtWidgets import QFrame, QLayout, QGridLayout, QWidget
 from qfluentwidgets import PushButton, InfoBar, InfoBarPosition, ImageLabel
 from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.clockShow import ClockShow
-from assembly.common import getEmj, getSadnessEmj
+from assembly.common import getEmj, getSadnessEmj, path_to_absolute
 from qfluentwidgets import FluentIcon as FIF
 
 def _replace_last_occurrence(s, old, new):
@@ -24,7 +25,7 @@ class ResultDisplayCard(QWidget):
         self.ImgDetectorBtn = PushButton("识别结果: " + getEmj() + " ", self.panel)
         self.cropImgLabel = ImageLabel()
         self.cropped_pixmap = None # 用于显示裁剪的图片
-        self.cropImgLabel.setVisible(True)
+        self.cropImgLabel.setVisible(False)
         self.confBtn = PushButton("置信度: " + getEmj() + " ", self.panel)
         self.runTimeBtn = PushButton("识别用时: " + getEmj() + " ", self.panel)
         self.xBtn = PushButton("x坐标: " + getEmj() + " ", self.panel)
@@ -56,9 +57,21 @@ class ResultDisplayCard(QWidget):
         self.layout.addWidget(self.folderInfoBtn, 6, 0, 1, 3)
         self.layout.addWidget(self.CoordinatePointBtn, 7, 0)
         self.layout.addWidget(self.timeClock, 8, 0, 1, 2)
-
         # 设置组件布局
         self.setLayout(self.layout)
+
+    def reset(self):
+        self.CoordinatePointBtn.setVisible(False)
+        self.cropImgLabel.setVisible(False)
+        self.setImgDetectorBtnText("")
+        self.setConfBtnText("")
+        self.setRunTimeBtnText("")
+        self.setXBtnText("")
+        self.setYBtnText("")
+        self.setWidthBtnText("")
+        self.setHeightBtnText("")
+        self.setPathBtnText("")
+        self.folderInfoBtn.setVisible(False)
 
     def dataProcess(self, num:float, r = None):
         if r is None:
@@ -67,13 +80,15 @@ class ResultDisplayCard(QWidget):
         return str(newNum)
 
     def displayOriginalDir(self,originalDir):
+        originalDir = path_to_absolute(originalDir)
         self.folderInfoBtn.setText("原始图文件夹: " + getEmj() + " " + originalDir)
         self.folderInfoBtn.setVisible(True)
 
     def preShow(self, redDict:dict):
         self.CoordinatePointBtn.setVisible(True)
         if redDict['path'] is not None:
-            self.setPathBtnText(redDict['path'])
+            path = path_to_absolute(redDict['path'])
+            self.setPathBtnText(path)
         else:
             self.setPathBtnText('')
         if redDict['rectangle_pos'] is not None:
@@ -125,6 +140,18 @@ class ResultDisplayCard(QWidget):
             # 显示截取的图片
             self.cropImgLabel.setPixmap(self.cropped_pixmap)
 
+    def cropPreImagePath(self, image_path: str, x: float, y: float, width: float, height: float):
+        try:
+            pixmap = QPixmap(image_path)
+        except:
+            return
+        if not pixmap.isNull():
+            # 根据尺寸截取图片
+            self.cropped_pixmap = pixmap.copy(x, y, width, height)
+            # 显示截取的图片
+            self.cropImgLabel.setPixmap(self.cropped_pixmap)
+        else:
+            print("Error: Invalid image path")
 
     def orgShow(self,resDic:dict):
         self.CoordinatePointBtn.setVisible(True)
@@ -141,7 +168,8 @@ class ResultDisplayCard(QWidget):
         self.setWidthBtnText("")
         self.setHeightBtnText("")
         try:
-            self.setPathBtnText(resDic['path'])
+            path = path_to_absolute(resDic['path'])
+            self.setPathBtnText(path)
         except:
             self.setPathBtnText('')
 
@@ -157,24 +185,30 @@ class ResultDisplayCard(QWidget):
         if scores is not None:
             str_conf = self.dataProcess(float(scores)*100)
             self.setConfBtnText(str_conf)
-
         else:
             self.setConfBtnText('')
         if savePath is not None:
+            savePath = path_to_absolute(savePath)
             self.setPathBtnText(savePath)
         else:
             self.setPathBtnText('')
-
         if rectanglePosDict is not None:
-            x = self.dataProcess(float(rectanglePosDict['x']))
-            y = self.dataProcess(float(rectanglePosDict['y']))
-            width = self.dataProcess(float(rectanglePosDict['width']))
-            height = self.dataProcess(float(rectanglePosDict['height']))
+            x = float(rectanglePosDict['x'])
+            y = float(rectanglePosDict['y'])
+            width = float(rectanglePosDict['width'])
+            height = float(rectanglePosDict['height'])
+            self.cropImgLabel.setVisible(True)
+            self.cropPreImagePath(savePath,x,y,width,height)
+            x = self.dataProcess(float(x))
+            y = self.dataProcess(float(y))
+            width = self.dataProcess(float(width))
+            height = self.dataProcess(float(height))
             self.setXBtnText(x)
             self.setYBtnText(y)
             self.setWidthBtnText(width)
             self.setHeightBtnText(height)
         else:
+            self.cropImgLabel.setVisible(False)
             self.setXBtnText('')
             self.setYBtnText('')
             self.setWidthBtnText('')

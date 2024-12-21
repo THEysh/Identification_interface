@@ -1,7 +1,7 @@
 # coding:utf-8
 import copy
 import re
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
                              QSplitter, QGridLayout)
 from PyQt5.QtGui import QPixmap, QResizeEvent
@@ -12,13 +12,11 @@ from assembly.AdaptiveImageLabel import AdaptiveImageLabel
 from assembly.DataInfo import DataInfo
 from assembly.InfoDisplayCards import InfoDisplayCards
 from assembly.PredictionState import PredictionStateMachine, Status
-from assembly.ResultDisplayCard import ResultDisplayCard
+from assembly.ResultDisplay import ResultDisplayCard
 from assembly.SetThreadCountBtn import SetThreadCountBtn
 from assembly.asyncProcessor import ImageLoaderThread, ImagePredictFolderThread, \
     AsyncFolderInterfaceWork, loadPredictionImageThread
-from assembly.autoResizePushButton import AutoResizePushButton
-from assembly.clockShow import ClockShow
-from assembly.common import getSpillFilepath, getEmj
+from assembly.common import getSpillFilepath
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
 from YoloMod import YoloModel
@@ -55,6 +53,8 @@ class _LeftContent():
         self.slider2.addwidget(self.leftLayout)
         self.leftLayout.addWidget(self.resultInfoCard)
 
+    def resultInfoCardReset(self):
+        self.resultInfoCard.reset()
 
     def updateImgCount(self, newNum:int):
         self.imageCountBtn.setText(f"图片数量: {str(newNum).zfill(3)}")
@@ -87,7 +87,8 @@ class _RightContent(SmoothResizingScrollArea):
         self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp'}
 
 class FolderInterface(QFrame):
-    def __init__(self, yoloMod:YoloModel, parent=None):
+    predictData_changed = pyqtSignal(dict)
+    def __init__(self, yoloMod:YoloModel,datainfo:DataInfo, parent=None):
         super().__init__(parent=parent)
         self.yolo = yoloMod
         self.hBoxLayout = QHBoxLayout(self)
@@ -95,7 +96,7 @@ class FolderInterface(QFrame):
         self.splitter = QSplitter()
         self.leftRegion = _LeftContent(QFrame(self))
         self.rightRegion = _RightContent(QFrame(self))
-        self.dataInfo = DataInfo()
+        self.dataInfo = datainfo
         self.threadWorks = AsyncFolderInterfaceWork()  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
@@ -233,6 +234,7 @@ class FolderInterface(QFrame):
         self.predictState.reset()
         self._statusDisplayUpdate()
         self.rightRegion.clearScrollAreaItem()
+        self.leftRegion.resultInfoCardReset()
 
     def _selectFolder(self):
         folderPath = QFileDialog.getExistingDirectory(

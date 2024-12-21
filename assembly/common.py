@@ -1,3 +1,4 @@
+import os
 import random
 import string
 import time
@@ -14,6 +15,10 @@ sadnessEmojiList = [
     "😩", "😫", "😿", "🥺", "😥", "😪",
 ]
 random.seed(time.time())
+
+def path_to_absolute(path):
+    absolute_path = os.path.abspath(path)
+    return absolute_path
 
 def getEmj(n=1):
     res = ""
@@ -55,7 +60,11 @@ def randomName():
     name = "".join(random.choices(string.ascii_letters + string.digits, k=16))
     return name
 
-
+def roundToR(num:float, r = None):
+    if r is None:
+            r = 2
+    newNum = round(num, r )
+    return str(newNum)
 
 
 

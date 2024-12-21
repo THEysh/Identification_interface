@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 class DataInfo(QObject):
     nowImgCount_changed = pyqtSignal(int)
     nowPreImgCount_changed = pyqtSignal(int)
-
+    predictDataTable_changed = pyqtSignal(dict,int)
     def __init__(self):
         super().__init__()
         self._imgFilesPath = []
@@ -68,6 +68,9 @@ class DataInfo(QObject):
                 self._allImgInfo[index][key].update(info)
             else:
                 self._allImgInfo[index][key] = info
+            if key == 'pre':
+                # 发出添加数据的信号
+                self.predictDataTable_changed.emit(self._allImgInfo[index][key],index)
         else:
             self._allImgInfo[index] = {key: info}
 

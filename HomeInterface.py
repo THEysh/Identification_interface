@@ -8,9 +8,8 @@ from PyQt5.QtWidgets import QFileDialog
 from qfluentwidgets import FluentIcon as FIF
 from assembly.DraggableImageLabel import DraggableImageLabel
 from assembly.InfoDisplayCards import InfoDisplayCards
-from assembly.ResultDisplayCard import ResultDisplayCard
+from assembly.ResultDisplay import ResultDisplayCard
 from assembly.asyncProcessor import ImagePredictThread
-from assembly.clockShow import ClockShow
 from assembly.displayNumericSlider import DisplayNumericSlider
 from YoloMod import YoloModel
 

@@ -1,84 +1,59 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QFileDialog, QVBoxLayout, QWidget
-from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import Qt
-from PIL import Image
+from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel
 
-class ImageCropper(QMainWindow):
+class MiddleClass(QObject):
+    """定义一个包含自定义信号的中间类"""
+    my_signal = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
-        self.initUI()
 
-    def initUI(self):
-        self.setWindowTitle('Image Cropper')
-        self.setGeometry(100, 100, 800, 600)
+    def emit_signal(self, message):
+        """一个用于手动触发信号的方法"""
+        self.my_signal.emit(message)
 
-        self.label = QLabel(self)
-        self.label.setGeometry(10, 10, 780, 540)
-        self.label.setAlignment(Qt.AlignCenter)
 
-        self.button = QPushButton('Load Image', self)
-        self.button.setGeometry(10, 560, 100, 30)
-        self.button.clicked.connect(self.loadImage)
+class ReceiverClass(QObject):
+    """定义一个接收信号并处理的类"""
 
-        self.crop_button = QPushButton('Crop Image', self)
-        self.crop_button.setGeometry(120, 560, 100, 30)
-        self.crop_button.clicked.connect(self.cropImage)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.signal_emitter = parent
+        self.signal_emitter.my_signal.connect(self.on_my_signal)
 
-        self.save_button = QPushButton('Save Cropped Image', self)
-        self.save_button.setGeometry(230, 560, 150, 30)
-        self.save_button.clicked.connect(self.saveCroppedImage)
+    def on_my_signal(self, message):
+        """当信号被触发时调用的槽函数"""
+        print(f"Received message: {message}")
 
-        self.x = 0
-        self.y = 0
-        self.width = 0
-        self.height = 0
 
-    def loadImage(self):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
-        if file_name:
-            self.image = Image.open(file_name)
-            self.label.setPixmap(QPixmap.fromImage(self.pilToQImage(self.image)))
+class MyMainWindow(QMainWindow):
+    """定义一个主窗口类，它使用中间类和接收类"""
 
-    def pilToQImage(self, image):
-        data = image.convert("RGBA").tobytes("raw", "RGBA")
-        qimage = QImage(data, image.width, image.height, QImage.Format_RGBA8888)
-        return qimage
+    def __init__(self):
+        super().__init__()
 
-    def cropImage(self):
-        if self.image:
-            # YOLO 返回的尺寸 (x, y, width, height)
-            x = self.x
-            y = self.y
-            width = self.width
-            height = self.height
-            # 根据尺寸截取图片
-            self.cropped_image = self.image.crop((x, y, x + width, y + height))
-            # 显示截取的图片
-            self.label.setPixmap(QPixmap.fromImage(self.pilToQImage(self.cropped_image)))
+        # 创建信号发射器实例，并将其作为父对象
+        self.signal_emitter = MiddleClass()
 
-    def saveCroppedImage(self):
-        if self.cropped_image:
-            options = QFileDialog.Options()
-            file_name, _ = QFileDialog.getSaveFileName(self, "Save Cropped Image", "", "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
-            if file_name:
-                self.cropped_image.save(file_name)
+        # 创建信号接收器实例，传递信号发射器作为父对象
+        self.signal_receiver = ReceiverClass(parent=self.signal_emitter)
 
-    def setCrop(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
+        # 创建用户界面部分
+        self.button = QPushButton("Send Signal", self)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.button)
+        self.container = QWidget()
+        self.container.setLayout(self.layout)
+        self.setCentralWidget(self.container)
 
+        self.button.clicked.connect(lambda: self.signal_emitter.emit_signal("Hello, Signal!"))
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mainWin = ImageCropper()
 
-    # 设置 YOLO 返回的尺寸
-    mainWin.setCrop(260.82, 158.58, 31.25, 30.38)
+    main_window = MyMainWindow()
+    main_window.show()
 
-    mainWin.show()
     sys.exit(app.exec_())

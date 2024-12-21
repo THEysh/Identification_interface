@@ -12,7 +12,7 @@ from HomeInterface import HomeInterface
 from FolderInterface import FolderInterface
 from TableInterface import TableInterface
 from YoloMod import YoloModel
-
+from assembly.DataInfo import DataInfo
 
 
 class Widget(QFrame):
@@ -34,9 +34,10 @@ class Window(FluentWindow):
 
     def initNavigation(self):
         self.yoloMod = YoloModel()
+        self.datainfo = DataInfo()
         self.homeInterface = HomeInterface(self.yoloMod, self)
-        self.folderInterface = FolderInterface(self.yoloMod, self)
-        self.TableInterface = TableInterface()
+        self.folderInterface = FolderInterface(self.yoloMod, datainfo =self.datainfo, parent=self)
+        self.TableInterface = TableInterface(datainfo = self.datainfo, parent=self)
         # self.settingInterface = Widget('Setting Interface', self)
         self.addSubInterface(self.homeInterface, FIF.HOME, '欢迎回来')
         self.addSubInterface(self.folderInterface, FIF.FOLDER, '文件夹')
