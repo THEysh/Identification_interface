@@ -12,7 +12,7 @@ from assembly.ResultDisplayCard import ResultDisplayCard
 from assembly.asyncProcessor import ImagePredictThread
 from assembly.clockShow import ClockShow
 from assembly.displayNumericSlider import DisplayNumericSlider
-from yoloMod import YoloModel
+from YoloMod import YoloModel
 
 
 class _LeftContent:

@@ -3,7 +3,7 @@ import random
 import time
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 from PyQt5.QtGui import QPixmap
-from yoloMod import YoloModel
+from YoloMod import YoloModel
 
 SleepTime = 0.02
 

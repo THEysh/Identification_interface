@@ -21,7 +21,7 @@ from assembly.clockShow import ClockShow
 from assembly.common import getSpillFilepath, getEmj
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
-from yoloMod import YoloModel
+from YoloMod import YoloModel
 
 class _LeftContent():
     def __init__(self, frame: QFrame):

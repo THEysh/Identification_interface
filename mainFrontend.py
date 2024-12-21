@@ -8,9 +8,10 @@ from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme,
                             NavigationAvatarWidget, qrouter, SubtitleLabel, setFont,SplashScreen)
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
-from home import HomeInterface
-from foldeRinterface import FolderInterface
-from yoloMod import YoloModel
+from HomeInterface import HomeInterface
+from FolderInterface import FolderInterface
+from TableInterface import TableInterface
+from YoloMod import YoloModel
 
 
 
@@ -35,9 +36,11 @@ class Window(FluentWindow):
         self.yoloMod = YoloModel()
         self.homeInterface = HomeInterface(self.yoloMod, self)
         self.folderInterface = FolderInterface(self.yoloMod, self)
+        self.TableInterface = TableInterface()
         # self.settingInterface = Widget('Setting Interface', self)
         self.addSubInterface(self.homeInterface, FIF.HOME, '欢迎回来')
-        self.addSubInterface(self.folderInterface, FIF.FOLDER, '文件夹', NavigationItemPosition.SCROLL)
+        self.addSubInterface(self.folderInterface, FIF.FOLDER, '文件夹')
+        self.addSubInterface(self.TableInterface, FIF.LABEL, "预测记录")
         # add custom widget to bottom
         self.navigationInterface.addWidget(
             routeKey='avatar',
@@ -65,7 +68,7 @@ class Window(FluentWindow):
         # 2-1 加载页面
         self.initNavigation()
         loop = QEventLoop(self)
-        QTimer.singleShot(2000, loop.quit)
+        QTimer.singleShot(1500, loop.quit)
         loop.exec()
         # 4. 隐藏启动页面
         self.splashScreen.finish()
