@@ -35,11 +35,11 @@ class _LeftContent():
         # 左侧按钮和标签
         self.selectFolderBtn = PrimaryPushButton(FIF.FOLDER_ADD, ' 选择文件夹 ', self.leftPanel)
         self.preModelbtn = PrimaryPushButton(FIF.SEND, "开始预测", self.leftPanel)
-
         self.setThreadCountBtn = SetThreadCountBtn(parent=self.leftPanel)
         # 图片数量
         self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 0", self.leftPanel)
         self.preImageCountBtn = PushButton(FIF.PHOTO, "预测图片数量: 0", self.leftPanel)
+
         self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
         self.modelInputData = ["iou", "conf"]
@@ -164,6 +164,12 @@ class FolderInterface(QFrame):
         text = self.predictState.statusValue
         self.leftRegion.preModelbtn.setText(text)
 
+    def imgInfoData(self,index:int, key:str):
+        resDic = self.dataInfo.getIndexKeyImgInfo(index,key)
+        if resDic is not None:
+            # 显示图片相关信息
+            print("showInfoData:", resDic)
+
     @property
     def getslidersValue(self):
         iou, conf = self.leftRegion.slider1.getvalue, self.leftRegion.slider2.getvalue
@@ -202,8 +208,6 @@ class FolderInterface(QFrame):
         if rectanglePosDict is None and savePath is not None:
             # 当前结果预测异常显示
             self.foldPlayCards.InfoBarErr(infStr="第{}行图预测结果没有标志".format(index + 1), parent=self.leftRegion.leftPanel)
-
-        self.leftRegion.resultInfoCard.show(savePath, rectanglePosDict, scores, classes, inferenceTime)
         pre_info = {"path": savePath,
                     "rectangle_pos": rectanglePosDict,
                     "scores": scores,
@@ -267,7 +271,8 @@ class FolderInterface(QFrame):
         thread.start()
 
     def _addImageLabel(self, pixmap: QPixmap, index: int):
-        imageLabel = AdaptiveImageLabel(self.rightRegion)
+        imageLabel = AdaptiveImageLabel(index, key='org', parent=self.rightRegion)
+        imageLabel.indexImgInfoSignal.connect(self.imgInfoData)
         imageLabel.setPixmap(pixmap)
         row = index
         col = 0
@@ -285,7 +290,8 @@ class FolderInterface(QFrame):
             self._statusDisplayUpdate()
 
     def _addPredictImage(self, pixmap: QPixmap, index: int, threadName: str):
-        imageLabel = AdaptiveImageLabel(self.rightRegion)
+        imageLabel = AdaptiveImageLabel(index, key='pre', parent = self.rightRegion)
+        imageLabel.indexImgInfoSignal.connect(self.imgInfoData)
         imageLabel.setPixmap(pixmap)
         row = index
         col = 1

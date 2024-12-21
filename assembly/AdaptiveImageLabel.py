@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, QTimer, QRectF
+from PyQt5.QtCore import Qt, QTimer, QRectF, pyqtSignal
 from PyQt5.QtGui import QPixmap, QPainter, QBrush, QColor, QPen, QPainterPath
 from qfluentwidgets import ImageLabel, SmoothScrollArea
 from qfluentwidgets import RoundMenu, Action, MenuAnimationType
@@ -6,8 +6,11 @@ from qfluentwidgets import FluentIcon as FIF
 
 
 class AdaptiveImageLabel(ImageLabel):
-    def __init__(self, parent=None):
+    indexImgInfoSignal = pyqtSignal(int, str)
+    def __init__(self, index:int, key='org', parent=None):
         super().__init__(parent)
+        self.index = index
+        self.key = key
         self.original_pixmap = None
         self.path = None
         self.radius = 18
@@ -18,6 +21,7 @@ class AdaptiveImageLabel(ImageLabel):
         self.is_selected = False
         # 设置部件接受悬停事件
         self.setMouseTracking(True)
+        self.path = None
 
     def setPixmap(self,pixmap):
         self.original_pixmap = pixmap
@@ -35,13 +39,11 @@ class AdaptiveImageLabel(ImageLabel):
         """更新图片大小"""
         if not self.original_pixmap or not self.parent():
             return
-
         scroll_area = self.parent().parent().parent()
         if isinstance(scroll_area, SmoothScrollArea):
             available_width = scroll_area.viewport().width()
         else:
             available_width = self.parent().width()
-
         target_width = (available_width - 60) // 2
         if self.original_pixmap.width() > 0:
             ratio = self.original_pixmap.height() / self.original_pixmap.width()
@@ -64,11 +66,13 @@ class AdaptiveImageLabel(ImageLabel):
         super().mousePressEvent(event)
         if event.button() == Qt.LeftButton:
             self.is_selected = True
+            self.indexImgInfoSignal.emit(self.index, self.key)
             self.update()
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         self.is_selected = False
+
     def paintEvent(self, event):
         """绘制事件"""
         super().paintEvent(event)

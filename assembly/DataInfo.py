@@ -4,6 +4,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 class DataInfo(QObject):
     nowImgCount_changed = pyqtSignal(int)
     nowPreImgCount_changed = pyqtSignal(int)
+
     def __init__(self):
         super().__init__()
         self._imgFilesPath = []
@@ -40,6 +41,7 @@ class DataInfo(QObject):
     @property
     def getAllImgInfo(self):
         return self._allImgInfo
+
     @property
     def getUnpredictedIndexPath(self):
         if len(self._allImgInfo)==0: return []
@@ -48,6 +50,13 @@ class DataInfo(QObject):
             if len(self._allImgInfo[index])<=1:
                 result.append([index, self._allImgInfo[index]['org']['path']])
         return result
+
+    def getIndexKeyImgInfo(self, index:int, key:str):
+        if index in self._allImgInfo:
+            if key in self._allImgInfo[index]:
+                return self._allImgInfo[index][key]
+        else: return None
+
 
     def appendImgFilesPath(self,path:str):
         self._imgFilesPath.append(path)
