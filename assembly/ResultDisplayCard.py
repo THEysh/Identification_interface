@@ -43,20 +43,19 @@ class ResultDisplayCard(QWidget):
         # 创建布局
         self.layout = QGridLayout(self)
         # 将控件添加到布局中
-
-        self.layout.addWidget(self.ImgDetectorBtn, 0, 0)
-        self.layout.addWidget(self.cropImgLabel, 0, 2)
-        self.layout.addWidget(self.xBtn, 1, 0)
-        self.layout.addWidget(self.yBtn, 1, 2)
-        self.layout.addWidget(self.widthBtn, 2, 0)
-        self.layout.addWidget(self.heightBtn, 2, 2)
+        self.layout.addWidget(self.ImgDetectorBtn, 0, 0, 1, 1)
+        self.layout.addWidget(self.cropImgLabel, 0, 2, 2, 2)
+        self.layout.addWidget(self.xBtn, 2, 0)
+        self.layout.addWidget(self.yBtn, 2, 2)
+        self.layout.addWidget(self.widthBtn, 3, 0)
+        self.layout.addWidget(self.heightBtn, 3, 2)
         # 位置信息文本
-        self.layout.addWidget(self.confBtn, 3, 0)
-        self.layout.addWidget(self.runTimeBtn, 3, 2)
-        self.layout.addWidget(self.pathBtn, 4, 0, 1, 3)  # 横跨3列
-        self.layout.addWidget(self.folderInfoBtn, 5, 0, 1, 3)
-        self.layout.addWidget(self.CoordinatePointBtn, 6, 0)
-        self.layout.addWidget(self.timeClock, 7, 0, 1, 2)
+        self.layout.addWidget(self.confBtn, 4, 0)
+        self.layout.addWidget(self.runTimeBtn, 4, 2)
+        self.layout.addWidget(self.pathBtn, 5, 0, 1, 3)  # 横跨3列
+        self.layout.addWidget(self.folderInfoBtn, 6, 0, 1, 3)
+        self.layout.addWidget(self.CoordinatePointBtn, 7, 0)
+        self.layout.addWidget(self.timeClock, 8, 0, 1, 2)
 
         # 设置组件布局
         self.setLayout(self.layout)
@@ -78,6 +77,7 @@ class ResultDisplayCard(QWidget):
         else:
             self.setPathBtnText('')
         if redDict['rectangle_pos'] is not None:
+            self.cropImgLabel.setVisible(True)
             x_float = float(redDict['rectangle_pos']['x'])
             y_float = float(redDict['rectangle_pos']['y'])
             width_float = float(redDict['rectangle_pos']['width'])
@@ -91,15 +91,15 @@ class ResultDisplayCard(QWidget):
             self.setWidthBtnText(width)
             self.setHeightBtnText(height)
             self.cropPreImage(redDict['pixmap'],x_float,y_float,width_float,height_float)
-
         else:
+            self.cropImgLabel.setVisible(False)
             self.setXBtnText('')
             self.setYBtnText('')
             self.setWidthBtnText('')
             self.setHeightBtnText('')
         if redDict['scores'] is not None:
-            conf = self.dataProcess(float(redDict['scores']))
-            self.setConfBtnText(conf)
+            str_conf = self.dataProcess(float(redDict['scores'])*100)
+            self.setConfBtnText(str_conf)
         else:
             self.setConfBtnText('')
         if redDict['classes'] is not None:
@@ -128,6 +128,7 @@ class ResultDisplayCard(QWidget):
 
     def orgShow(self,resDic:dict):
         self.CoordinatePointBtn.setVisible(True)
+        self.cropImgLabel.setVisible(False)
         try:
             self.setCoordinatePointBtnText((resDic['row'],resDic['col']))
         except:
@@ -154,7 +155,9 @@ class ResultDisplayCard(QWidget):
         else:
             self.setImgDetectorBtnText('')
         if scores is not None:
-            self.setConfBtnText(self.dataProcess(float(scores)))
+            str_conf = self.dataProcess(float(scores)*100)
+            self.setConfBtnText(str_conf)
+
         else:
             self.setConfBtnText('')
         if savePath is not None:
@@ -197,37 +200,55 @@ class ResultDisplayCard(QWidget):
         return self.confBtn.text()
 
     def setConfBtnText(self, text: str):
-        self.confBtn.setText("置信度: " + getEmj() + " " + text)
+        if len(text)>=1:
+            self.confBtn.setText("置信度: " + getEmj() + " " + text + "%")
+        else:
+            self.confBtn.setText("置信度: " + getEmj())
 
     def getRunTimeBtnText(self) -> str:
         return self.runTimeBtn.text()
 
     def setRunTimeBtnText(self, text: str):
-        self.runTimeBtn.setText("识别用时: " + getEmj() + " " + text + "ms")
+        if len(text)>=1:
+            self.runTimeBtn.setText("识别用时: " + getEmj() + " " + text + "ms")
+        else:
+            self.runTimeBtn.setText("识别用时: " + getEmj())
 
     def getXBtnText(self) -> str:
         return self.xBtn.text()
 
     def setXBtnText(self, text: str):
-        self.xBtn.setText("x: " + getEmj() + " " + text)
+        if len(text)>=1:
+            self.xBtn.setText("x: " + getEmj() + " " + text + "px")
+        else:
+            self.xBtn.setText("x: " + getEmj())
 
     def getYBtnText(self) -> str:
         return self.yBtn.text()
 
     def setYBtnText(self, text: str):
-        self.yBtn.setText("y: " + getEmj() + " " + text)
+        if len(text)>=1:
+            self.yBtn.setText("y: " + getEmj() + " " + text + "px")
+        else:
+            self.yBtn.setText("y: " + getEmj())
 
     def getWidthBtnText(self) -> str:
         return self.widthBtn.text()
 
     def setWidthBtnText(self, text: str):
-        self.widthBtn.setText("宽: " + getEmj() + " " + text)
+        if len(text)>=1:
+            self.widthBtn.setText("宽: " + getEmj() + " " + text + "px")
+        else:
+            self.widthBtn.setText("宽: " + getEmj())
 
     def getHeightBtnText(self) -> str:
         return self.heightBtn.text()
 
     def setHeightBtnText(self, text: str):
-        self.heightBtn.setText("高: " + getEmj() + " " + text)
+        if len(text)>=1:
+            self.heightBtn.setText("高: " + getEmj() + " " + text + "px")
+        else:
+            self.heightBtn.setText("高: " + getEmj())
 
     def getPathBtnText(self) -> str:
         return self.pathBtn.text()
