@@ -8,7 +8,10 @@ from assembly.common import getEmj, getSadnessEmj
 
 
 def _replace_last_occurrence(s, old, new):
-    return s.rsplit(old, 1)[0] + new + s.rsplit(old, 1)[1]
+    parts = s.rsplit(old, 1)  # 从右边分割字符串，最多分割一次
+    if len(parts) == 1:
+        return s  # 如果没有找到 old，直接返回原字符串
+    return parts[0] + new + parts[1]  # 替换最后一次出现的 old
 
 
 class ResultDisplayCard():
@@ -17,7 +20,7 @@ class ResultDisplayCard():
         self.rList = []
         self.widthLimit = widthLimit
         # 保留几位小数
-        self.roundNumber = 3
+        self.roundNumber = 2
         self._setOriginalList()
         self.rList.append(PushButton(self.originalList[0], self.panel))
         self.rList.append(PushButton(self.originalList[1], self.panel))
@@ -42,25 +45,27 @@ class ResultDisplayCard():
                              "文件路径: " + getEmj() + " ",
                              ]
 
-    def _showOriginal(self):
-        self._setOriginalList()
-        for i in range(len(self.originalList)):
-            self.rList[i].setText(self.originalList[i])
+    def dataProcess(self, num:float):
+        newNum = round(num,self.roundNumber)
+        return str(newNum)
 
     def show(self, saveDir, rectanglePos, scores, classes, inferenceTime):
-        self._showOriginal()
-        scores = scores if scores is not None else ""
-        classes = classes if classes is not None else ""
+        scores = self.dataProcess(float(scores*100)) + "%" if scores is not None else ""
+        classes = self.dataProcess(float(inferenceTime)) if classes is not None else ""
         ans = [classes, scores, inferenceTime]
         if rectanglePos is not None:
-            ans.extend([rectanglePos["x"], rectanglePos["y"], rectanglePos["width"], rectanglePos["height"]])
+            x = self.dataProcess(float(rectanglePos["x"]))
+            y = self.dataProcess(float(rectanglePos["y"]))
+            width = self.dataProcess(float(rectanglePos["width"]))
+            heght = self.dataProcess(float(rectanglePos["height"]))
+            ans.extend([x, y, width, heght])
         else:
             ans.extend(["", "", "", ""])
         ans.append(saveDir)
         try:
-            for i in range(len(self.rList)):
-                tempStr = self.rList[i].text()
-                new_inf = _replace_last_occurrence(tempStr, tempStr[-1], str(ans[i]))
+            for i in range(len(self.originalList)):
+                tempStr = self.originalList[i]
+                new_inf = _replace_last_occurrence(tempStr, " ", str(ans[i]))
                 self.rList[i].setText(new_inf)
 
         except Exception as e:

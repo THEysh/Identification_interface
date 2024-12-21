@@ -41,7 +41,7 @@ class DataInfo(QObject):
     def getAllImgInfo(self):
         return self._allImgInfo
     @property
-    def getUnpredictedPath(self):
+    def getUnpredictedIndexPath(self):
         if len(self._allImgInfo)==0: return []
         result = []
         for index,value in self._allImgInfo.items():

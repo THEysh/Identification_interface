@@ -14,6 +14,7 @@ from assembly.DataInfo import DataInfo
 from assembly.InfoDisplayCards import InfoDisplayCards
 from assembly.PredictionState import PredictionStateMachine, Status
 from assembly.ResultDisplayCard import ResultDisplayCard
+from assembly.SetThreadCountBtn import SetThreadCountBtn
 from assembly.asyncProcessor import ImageLoaderThread, ImagePredictFolderThread, \
     AsyncFolderInterfaceWork, loadPredictionImageThread
 from assembly.autoResizePushButton import AutoResizePushButton
@@ -34,7 +35,8 @@ class _LeftContent():
         # 左侧按钮和标签
         self.selectFolderBtn = PrimaryPushButton(FIF.FOLDER_ADD, ' 选择文件夹 ', self.leftPanel)
         self.preModelbtn = PrimaryPushButton(FIF.SEND, "开始预测", self.leftPanel)
-        self.preModelbtn.setEnabled(False)
+
+        self.setThreadCountBtn = SetThreadCountBtn(parent=self.leftPanel)
         # 图片数量
         self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 0", self.leftPanel)
         self.preImageCountBtn = PushButton(FIF.PHOTO, "预测图片数量: 0", self.leftPanel)
@@ -51,6 +53,7 @@ class _LeftContent():
         # 添加到左侧布局
         self.leftLayout.addWidget(self.selectFolderBtn)
         self.leftLayout.addWidget(self.preModelbtn)
+        self.leftLayout.addWidget(self.setThreadCountBtn)
         self.leftLayout.addWidget(self.imageCountBtn)
         self.leftLayout.addWidget(self.preImageCountBtn)
         self.slider1.addwidget(self.leftLayout)
@@ -100,7 +103,7 @@ class FolderInterface(QFrame):
         self.leftRegion = _LeftContent(QFrame(self))
         self.rightRegion = _RightContent(QFrame(self))
         self.dataInfo = DataInfo()
-        self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=3)  # 异步线程数目
+        self.threadWorks = AsyncFolderInterfaceWork()  # 异步线程数目
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
@@ -109,8 +112,9 @@ class FolderInterface(QFrame):
         # 创建信号链接
         self.dataInfo.nowImgCount_changed.connect(self.leftRegion.updateImgCount)
         self.dataInfo.nowPreImgCount_changed.connect(self.leftRegion.updatePreImageCount)
-        self.leftRegion.preModelbtn.clicked.connect(lambda: self._loadModelFunction())
-
+        self.leftRegion.setThreadCountBtn.thread_count_changed.connect(self._setThreadCount)
+        self.leftRegion.preModelbtn.clicked.connect(self._loadModelFunction)
+        self.leftRegion.selectFolderBtn.clicked.connect(self._selectFolder)
         # 加载默认路径
         folder_path = "./testimg"
         self._loadimg(folder_path)
@@ -120,14 +124,25 @@ class FolderInterface(QFrame):
         self.splitter.addWidget(self.leftRegion.leftPanel)
         self.splitter.addWidget(self.rightRegion)
         self.hBoxLayout.addWidget(self.splitter)
-        # 连接信号
-        self.leftRegion.selectFolderBtn.clicked.connect(self._selectFolder)
+
+    def _setThreadCount(self,count:int):
+        if (self.predictState.status == Status.NOT_PREDICTED or
+            self.predictState.status == Status.LOAD_IMG or
+            self.predictState.status == Status.PREDICTED):
+            self.threadWorks = AsyncFolderInterfaceWork(count)
+            self.foldPlayCards.InfoSetThreadCountSuccess(self)
+        else:
+            self.foldPlayCards.InfoSetThreadCountWarning(self)
 
     def _loadModelFunction(self):
-        print(self.predictState)
         if self.predictState.status == Status.NOT_PREDICTED:
-            self.predictState.start_prediction()
-            self._modelPredict()
+            UnpredictedPath = self.dataInfo.getUnpredictedIndexPath
+            if len(UnpredictedPath) <= 0:
+                self.foldPlayCards.InfoPredictProcessingSuccess(parent=self)
+                return
+            else:
+                self.predictState.start_prediction()
+                self._modelPredict(UnpredictedPath)
         elif self.predictState.status == Status.PREDICTING:
             # 预测中-》停止中
             self.predictState.stop_prediction()
@@ -142,7 +157,6 @@ class FolderInterface(QFrame):
 
     def _statusDisplayUpdate(self):
         if (self.predictState.status == Status.PREDICT_STOPING or
-                self.predictState.status == Status.PREDICTED or
                 self.predictState.status == Status.LOAD_IMG):
             self.leftRegion.preModelbtn.setEnabled(False)
         else:
@@ -155,11 +169,10 @@ class FolderInterface(QFrame):
         iou, conf = self.leftRegion.slider1.getvalue, self.leftRegion.slider2.getvalue
         return [iou, conf]
 
-    def _modelPredict(self):
-        if self.dataInfo.getLenImgFilesPath <= 0: return
+    def _modelPredict(self, UnpredictedPath):
+
         slidersValue = self.getslidersValue
         # 过滤得到没有预测的数据和索引
-        UnpredictedPath = self.dataInfo.getUnpredictedPath
         # predictDatas: 原始img路径，iou,conf,index
         predictDatas = getSpillFilepath(UnpredictedPath,
                                         self.threadWorks.threadCount, slidersValue)

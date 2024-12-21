@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from qfluentwidgets import StateToolTip, InfoBar, InfoBarPosition
-from assembly.common import getEmj
+from assembly.common import getEmj, getSadnessEmj
 
 
 class InfoDisplayCards:
@@ -13,6 +13,51 @@ class InfoDisplayCards:
         if parent is None:
             parent = self.parent
         return parent
+    def InfoPredictProcessingSuccess(self, parent=None):
+        InfoBar.success(
+            title='成功',
+            content="所有图片已全部预测" + getEmj(),
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            # position='Custom',   # NOTE: use custom info bar manager
+            duration=2000,
+            parent=parent
+        )
+
+    def InfoPredictProcessingwarning(self, parent):
+        InfoBar.warning(
+            title='警告',
+            content="当前文件夹为空 " + getSadnessEmj(),
+            orient=Qt.Horizontal,
+            isClosable=False,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=parent
+        )
+
+    def InfoSetThreadCountSuccess(self, parent=None):
+        InfoBar.success(
+            title='成功',
+            content="线程数目设置成功 " + getEmj(),
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            # position='Custom',   # NOTE: use custom info bar manager
+            duration=2000,
+            parent=parent
+        )
+
+    def InfoSetThreadCountWarning(self, parent=None):
+        InfoBar.warning(
+            title='警告',
+            content="当前不可设置线程数目 " + getSadnessEmj(),
+            orient=Qt.Horizontal,
+            isClosable=False,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=parent
+        )
 
     def InfoBarErr(self, infStr=None, parent=None):
         # infDict 是个字典,传入有index的key
@@ -41,6 +86,7 @@ class InfoDisplayCards:
             duration=-1,
             parent=parent
         )
+
     def InfoBarManualStop(self, parent=None):
         parent = self._getParent(parent)
         InfoBar.error(
