@@ -13,12 +13,16 @@ class HistoryRecordTable(TableWidget):
         self.setWordWrap(False)
         self.setRowCount(0)
         self.setColumnCount(6)
+        # 点击会选中一列
         self.setSelectRightClickedRow(True)
         # 根据内容调整列宽
         # self.resizeColumnsToContents()
         self.scrollDelagate.verticalSmoothScroll.setSmoothMode(SmoothMode.NO_SMOOTH)
         #隐藏表头
         # self.verticalHeader().hide()
+        # 设置行高不可调整
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.verticalHeader().setDefaultSectionSize(40) # 行高
         self.setHorizontalHeaderLabels(['识别结果 '+getEmj() ,
                                         '识别区域 '+getEmj() ,
                                         '置信度 ' + getEmj() ,
@@ -28,9 +32,9 @@ class HistoryRecordTable(TableWidget):
         self.setColumnWidth(0, 90)
         self.setColumnWidth(1, 90)
         self.setColumnWidth(2, 80)
-        self.setColumnWidth(3, 70)
-        self.setColumnWidth(4,210)
-        self.setColumnWidth(5, 210)
+        self.setColumnWidth(3, 95)
+        self.setColumnWidth(4,200)
+        self.setColumnWidth(5, 200)
 
 
 

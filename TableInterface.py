@@ -39,7 +39,7 @@ class TableInterface(QWidget):
                 conf_str = conf_str + "%"
             # 添加数据
             self.updateTable(0, classes_str)
-            self.addCropPreImg(self.tableView.rowCount()-1,1, path_str,
+            self._addCropPreImg(self.tableView.rowCount()-1,1, path_str,
                                x_float_or_str, y_float_or_str, width_float_or_str, height_float_or_str)
             self.updateTable( 2, conf_str)
             self.updateTable( 3, inference_time)
@@ -68,7 +68,7 @@ class TableInterface(QWidget):
         else:
             return False
 
-    def addCropPreImg(self,row, col, image_path: str, x: float, y: float, width: float, height: float):
+    def _addCropPreImg(self,row, col, image_path: str, x: float, y: float, width: float, height: float):
         if type(x)==float and type(y)==float and type(width)==float and type(height)==float:
             pixmap = cropPreImagePath(image_path, x, y, width, height)
             # 按比例缩放 QPixmap
@@ -76,14 +76,15 @@ class TableInterface(QWidget):
             cropImage = ImageLabel(parent=self.tableView)
             cropImage.setPixmap(pixmap)
             # 设置居中对齐
-            cropImage.setAlignment(Qt.AlignCenter)
+            # cropImage.setAlignment(Qt.AlignCenter)
             # 创建一个 QWidget 作为容器
             container = QWidget()
             layout = QVBoxLayout()
             layout.addWidget(cropImage)
-            #  设置 QVBoxLayout 的对齐方式为居中对齐。这样，布局中的所有子控件都会在布局的中心位置显示
+            # 设置 QVBoxLayout 的对齐方式为居中对齐。这样，布局中的所有子控件都会在布局的中心位置显示
             layout.setAlignment(Qt.AlignCenter)
-            layout.setContentsMargins(5, 5, 5, 5)
+            # 设置margin
+            layout.setContentsMargins(0, 0, 0, 0)
             container.setLayout(layout)
             # 将容器添加到表格中
             self.tableView.setCellWidget(row, col, container)
