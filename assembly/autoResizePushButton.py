@@ -1,4 +1,3 @@
-
 from PyQt5.QtGui import QFontMetrics
 from PyQt5.QtWidgets import  QWidget
 from qfluentwidgets import FluentIconBase, PushButton

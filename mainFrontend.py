@@ -1,11 +1,10 @@
 # coding:utf-8
 import sys
-from PyQt5.QtCore import Qt, QUrl, QSize, QEventLoop, QTimer
-from PyQt5.QtGui import QIcon, QDesktopServices
+from PyQt5.QtCore import Qt, QEventLoop, QTimer
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout
-
-from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
-                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont,SplashScreen)
+from qfluentwidgets import (NavigationItemPosition, MessageBox, FluentWindow,
+                            NavigationAvatarWidget, SubtitleLabel, setFont,SplashScreen)
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 from HomeInterface import HomeInterface

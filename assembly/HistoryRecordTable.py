@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QHeaderView
 from docutils.nodes import title
-from qfluentwidgets import TableWidget, SmoothMode, ImageLabel
+from qfluentwidgets import TableWidget, SmoothMode
 from assembly.common import getEmj
 
 

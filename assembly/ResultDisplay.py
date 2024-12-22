@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QGridLayout, QWidget
 from qfluentwidgets import PushButton, ImageLabel
 from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.clockShow import ClockShow
-from assembly.common import getEmj, path_to_absolute, roundToR, checkFloat, checkInt
+from assembly.common import getEmj, path_to_absolute, roundToR, checkFloat
 from qfluentwidgets import FluentIcon as FIF
 RoundNumber = 2
 

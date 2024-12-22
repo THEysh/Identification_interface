@@ -1,7 +1,6 @@
-import sys
-from PyQt5.QtWidgets import QVBoxLayout, QFrame, QLayout
+from PyQt5.QtWidgets import QFrame
 from PyQt5.QtCore import QTimer, QDateTime
-from qfluentwidgets import PushButton, InfoBadge, InfoBadgePosition
+from qfluentwidgets import PushButton
 from qfluentwidgets import FluentIcon as FIF
 
 class ClockShow(PushButton):

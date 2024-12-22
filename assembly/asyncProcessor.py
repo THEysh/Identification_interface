@@ -1,5 +1,3 @@
-import os
-import random
 import time
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 from PyQt5.QtGui import QPixmap

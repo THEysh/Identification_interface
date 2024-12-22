@@ -1,13 +1,10 @@
 # coding:utf-8
 import copy
-
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
-from qfluentwidgets import FlowLayout, StateToolTip, PrimaryPushButton, InfoBar, InfoBarPosition
+from qfluentwidgets import FlowLayout, PrimaryPushButton
 from PyQt5.QtWidgets import QFileDialog
 from qfluentwidgets import FluentIcon as FIF
-
 from assembly.DataInfo import DataInfo
 from assembly.DraggableImageLabel import DraggableImageLabel
 from assembly.InfoDisplayCards import InfoDisplayCards

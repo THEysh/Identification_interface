@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt, QTimer, QRectF, pyqtSignal
-from PyQt5.QtGui import QPixmap, QPainter, QBrush, QColor, QPen, QPainterPath
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtGui import QPixmap, QPainter, QPen
 from qfluentwidgets import ImageLabel, SmoothScrollArea
 from qfluentwidgets import RoundMenu, Action, MenuAnimationType
 from qfluentwidgets import FluentIcon as FIF

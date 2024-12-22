@@ -1,7 +1,6 @@
 import os.path
-from distutils.command.check import check
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QTableWidgetItem, QVBoxLayout, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QTableWidgetItem, QVBoxLayout,QFileDialog
 from qfluentwidgets import ImageLabel, PrimaryPushButton, InfoBar, InfoBarPosition
 from assembly.DataInfo import DataInfo
 from assembly.HistoryRecordTable import HistoryRecordTable
