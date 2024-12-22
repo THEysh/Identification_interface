@@ -25,6 +25,17 @@ class InfoDisplayCards:
             parent=parent
         )
 
+    def InfoloadingFolderSelectionTips(self, parent=None):
+        InfoBar.warning(
+            title='警告',
+            content="选择文件夹开始加载图片" + getEmj(),
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=parent
+        )
+
     def InfoPredictProcessingwarning(self, parent):
         InfoBar.warning(
             title='警告',

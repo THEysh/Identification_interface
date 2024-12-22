@@ -26,7 +26,7 @@ class DisplayNumericSlider(QFrame):
 
     def changevalue(self):
         v = self.getvalue
-        self.valueLabel.setText(self.name +":{}".format(str(v)))
+        self.valueLabel.setText(self.name + ": {:.3f}".format(v))
 
     @property
     def getvalue(self):

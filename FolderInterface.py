@@ -31,7 +31,7 @@ class _LeftContent():
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         # 左侧按钮和标签
         self.selectFolderBtn = PrimaryPushButton(FIF.FOLDER_ADD, ' 选择文件夹 ', self.leftPanel)
-        self.preModelbtn = PrimaryPushButton(FIF.SEND, "开始预测", self.leftPanel)
+        self.preModelbtn = PrimaryPushButton(FIF.SEND, Status.NOT_PREDICTED.value, self.leftPanel)
         self.setThreadCountBtn = SetThreadCountBtn(parent=self.leftPanel)
         # 图片数量
         self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 0", self.leftPanel)
@@ -110,8 +110,8 @@ class FolderInterface(QFrame):
         self.leftRegion.preModelbtn.clicked.connect(self._loadModelFunction)
         self.leftRegion.selectFolderBtn.clicked.connect(self._selectFolder)
         # 加载默认路径
-        folder_path = "./testimg"
-        self._loadimg(folder_path)
+        # folder_path = "./testimg"
+        # self._loadimg(folder_path)
 
     def setupUI(self):
         # 设置主布局
@@ -132,7 +132,10 @@ class FolderInterface(QFrame):
         if self.predictState.status == Status.NOT_PREDICTED:
             UnpredictedPath = self.dataInfo.getUnpredictedIndexPath
             if len(UnpredictedPath) <= 0:
-                self.foldPlayCards.InfoPredictProcessingSuccess(parent=self)
+                if self.dataInfo.getLenImgFilesPath == 0:
+                    self.foldPlayCards.InfoloadingFolderSelectionTips(parent=self)
+                else:
+                    self.foldPlayCards.InfoPredictProcessingSuccess(parent=self)
                 return
             else:
                 self.predictState.start_prediction()

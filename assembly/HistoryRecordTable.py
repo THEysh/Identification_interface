@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView, QWidget, QVBoxLayout
+from docutils.nodes import title
 from qfluentwidgets import TableWidget, SmoothMode, ImageLabel
 from assembly.common import getEmj
 
@@ -36,5 +36,25 @@ class HistoryRecordTable(TableWidget):
         self.setColumnWidth(4,200)
         self.setColumnWidth(5, 200)
 
+    def getTableData(self):
+        data = []
+        for row in range(self.rowCount()):
+            row_data = []
+            for column in range(self.columnCount()):
+                item = self.item(row, column)
+                if item is not None:
+                    row_data.append(item.text())
+                else:
+                    row_data.append('')
+            data.append(row_data)
+        return data
 
-
+    def getTableTitle(self):
+        headers = []
+        for column in range(self.columnCount()):
+            header_item = self.horizontalHeaderItem(column)
+            if header_item is not None:
+                headers.append(header_item.text())
+            else:
+                headers.append('')
+        return headers

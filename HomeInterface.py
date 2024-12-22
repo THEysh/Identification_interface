@@ -28,7 +28,6 @@ class _LeftContent:
         self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
         self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.65), self.leftPanel)
-
         self._addWidgets()
 
     def _addWidgets(self):
@@ -43,7 +42,7 @@ class _RightContent:
         self.rightLayout = FlowLayout(self.rightPanel, needAni=True)
         self.imageLabel1 = DraggableImageLabel(self.rightPanel)
         self.imageLabel2 = DraggableImageLabel(self.rightPanel)
-        self.imageLabel1.setCustomImage('resource/cut_RGB_20240719084737.png')
+        # self.imageLabel1.setCustomImage('resource/cut_RGB_20240719084737.png')
 
         self.imageLabel1.setBorderRadius(10, 10, 10, 10)
         self.imageLabel2.setBorderRadius(10, 10, 10, 10)

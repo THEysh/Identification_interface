@@ -1,8 +1,9 @@
 import os
 import random
+import shutil
 import string
 import time
-
+from datetime import datetime
 
 EmojiList = [
     "😀", "😆", "😊", "🥰", "😍", "😘", "😁",
@@ -76,6 +77,20 @@ def checkInt(data):
         return True
     else:
         return False
+
+def getTimeStr():
+    # 获取当前日期和时间
+    current_datetime = datetime.now()
+    # 格式化为字符串
+    formatted_datetime = current_datetime.strftime("%m_%d_%H_%M_%S")
+    return formatted_datetime
+
+def copyFileToDir(source_file, dir):
+    # 检查源文件是否存在
+    if os.path.exists(source_file):
+        # 使用shutil.copy()方法复制文件
+        shutil.copy(source_file, dir)
+        print(f"成功")
 
 if __name__ == '__main__':
     paths = ["file1", "file2", "file3", "file4", "file5", "f6", "f7", "f8", "f9", "f10"]
