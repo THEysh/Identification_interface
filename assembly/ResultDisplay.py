@@ -45,6 +45,20 @@ def _replace_last_occurrence(s, old, new):
     return parts[0] + new + parts[1]  # 替换最后一次出现的 old
 
 
+
+def cropPreImagePath(image_path: str, x: float, y: float, width: float, height: float):
+        try:
+            pixmap = QPixmap(image_path)
+        except:
+            return None
+        if not pixmap.isNull():
+            # 根据尺寸截取图片
+            cropped_pixmap = pixmap.copy(x, y, width, height)
+            return cropped_pixmap
+        else:
+            return None
+
+
 class ResultDisplayCard(QWidget):
     def __init__(self, widthLimit: int, parent: QWidget = None):
         super().__init__(parent)

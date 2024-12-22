@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView
-from qfluentwidgets import TableWidget, SmoothMode
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView, QWidget, QVBoxLayout
+from qfluentwidgets import TableWidget, SmoothMode, ImageLabel
 from assembly.common import getEmj
 
 
@@ -30,3 +31,6 @@ class HistoryRecordTable(TableWidget):
         self.setColumnWidth(3, 70)
         self.setColumnWidth(4,210)
         self.setColumnWidth(5, 210)
+
+
+
