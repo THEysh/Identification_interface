@@ -2,10 +2,13 @@
 import copy
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSplitter
 from qfluentwidgets import FlowLayout, StateToolTip, PrimaryPushButton, InfoBar, InfoBarPosition
 from PyQt5.QtWidgets import QFileDialog
 from qfluentwidgets import FluentIcon as FIF
+
+from assembly.DataInfo import DataInfo
 from assembly.DraggableImageLabel import DraggableImageLabel
 from assembly.InfoDisplayCards import InfoDisplayCards
 from assembly.ResultDisplay import ResultDisplayCard
@@ -52,9 +55,10 @@ class _RightContent:
 
 
 class HomeInterface(QFrame):
-    def __init__(self, yoloMod:YoloModel, parent=None):
+    def __init__(self, yoloMod:YoloModel, datainfo:DataInfo, parent=None):
         super().__init__(parent=parent)
         self.yolo = yoloMod
+        self.dataInfo = datainfo
         self.hBoxLayout = QHBoxLayout(self)
         self.splitter = QSplitter()
         self.leftRegion = _LeftContent(QFrame(self))
@@ -81,6 +85,9 @@ class HomeInterface(QFrame):
         )
         if len(file_path) == 0: return
         self.rightRegion.imageLabel1.setCustomImage(file_path)
+        # 更新信息
+        pixmap = QPixmap(file_path)
+        self.dataInfo.imgAddInfo(index=-1, key="org", info={"pixmap": pixmap,'path':file_path})
         self._modelPredict(file_path)
 
     def _modelPredict(self, filePath):
@@ -95,6 +102,12 @@ class HomeInterface(QFrame):
 
     def _modelPredictOut(self, predictResultsList: list):
         [savePath, rectanglePosDict, scores, classes, imgshape, orgimgpath, inferenceTime] = predictResultsList
+        pre_info = {"path": savePath,
+                    "rectangle_pos": rectanglePosDict,
+                    "scores": scores,
+                    "classes": classes,
+                    "inference_time": inferenceTime}
+        self.dataInfo.imgAddInfo(index=-1, key="pre", info=pre_info)
         if rectanglePosDict is None:
             self.homeDisplayCard.InfoBarErr(parent=self.leftRegion.leftPanel)
         self.leftRegion.resultInfoCard.homeShow(savePath, rectanglePosDict, scores, classes, inferenceTime)

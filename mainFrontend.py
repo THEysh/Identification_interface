@@ -35,7 +35,7 @@ class Window(FluentWindow):
     def initNavigation(self):
         self.yoloMod = YoloModel()
         self.datainfo = DataInfo()
-        self.homeInterface = HomeInterface(self.yoloMod, self)
+        self.homeInterface = HomeInterface(self.yoloMod, datainfo = self.datainfo, parent=self)
         self.folderInterface = FolderInterface(self.yoloMod, datainfo =self.datainfo, parent=self)
         self.TableInterface = TableInterface(datainfo = self.datainfo, parent=self)
         # self.settingInterface = Widget('Setting Interface', self)

@@ -39,12 +39,12 @@ class TableInterface(QWidget):
                 conf_str = conf_str + "%"
             # 添加数据
             self.updateTable(0, classes_str)
-            self.updateTable( 1, conf_str)
-            self.updateTable( 2, inference_time)
-            self.updateTable( 3, path_str)
+            self.updateTable( 2, conf_str)
+            self.updateTable( 3, inference_time)
+            self.updateTable( 4, path_str)
             if 'path' in dic['org']:
                 orgPath = path_to_absolute(dic['org']['path'])
-                self.updateTable(4, orgPath)
+                self.updateTable(5, orgPath)
                 # 添加去重复处理
                 self.deduplicationCheck[orgPath] = True
         else:

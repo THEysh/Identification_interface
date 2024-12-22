@@ -5,7 +5,6 @@ from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.clockShow import ClockShow
 from assembly.common import getEmj, path_to_absolute, roundToR, checkFloat, checkInt
 from qfluentwidgets import FluentIcon as FIF
-
 RoundNumber = 2
 
 def processPreResDict(redDict: dict):
@@ -52,7 +51,7 @@ class ResultDisplayCard(QWidget):
         self.panel = parent
         self.widthLimit = widthLimit
         # 保留几位小数
-
+        self.roundNumber = RoundNumber
         self.ImgDetectorBtn = PushButton("识别结果: " + getEmj() + " ", self.panel)
         self.cropImgLabel = ImageLabel()
         self.cropped_pixmap = None # 用于显示裁剪的图片
