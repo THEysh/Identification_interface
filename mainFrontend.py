@@ -55,7 +55,7 @@ class Window(FluentWindow):
         # 1. 创建启动页面
         self.resize(900, 700)
         self.setWindowIcon(QIcon('resource/logo.png'))
-        self.setWindowTitle('AI铸字识别')
+        self.setWindowTitle('基于多级注意力特征融合的YOLO11模型铸字识别检测系统设计')
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)

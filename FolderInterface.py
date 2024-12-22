@@ -34,7 +34,7 @@ class _LeftContent():
         self.preModelbtn = PrimaryPushButton(FIF.SEND, Status.NOT_PREDICTED.value, self.leftPanel)
         self.setThreadCountBtn = SetThreadCountBtn(parent=self.leftPanel)
         # 图片数量
-        self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 0", self.leftPanel)
+        self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 000", self.leftPanel)
         self.preImageCountBtn = PushButton(FIF.PHOTO, "预测图片数量: 0", self.leftPanel)
         self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
         self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
