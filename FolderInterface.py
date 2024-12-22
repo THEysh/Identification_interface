@@ -297,7 +297,7 @@ class FolderInterface(QFrame):
         # 加载图片
         self.rightRegion.layout.addWidget(imageLabel, row, col)
         # 更新信息
-        self.dataInfo.imgAddInfo(index=index, key="pre", info={"pixmap": pixmap, "row": index})
+        self.dataInfo.imgAddInfo(index=index, key="pre", info={"pixmap": pixmap, "row": index, "col": col})
         self.threadWorks.finishedOneloadPreimgThreads(name=threadName)
         # 更新加载预测的图片数目
         if index + 1 > self.dataInfo.getNowPreImgCount:

@@ -66,7 +66,16 @@ def roundToR(num:float, r = None):
     newNum = round(num, r )
     return str(newNum)
 
-
+def checkFloat(data):
+    if type(data) == float:
+        return True
+    else:
+        return False
+def checkInt(data):
+    if type(data) == int:
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     paths = ["file1", "file2", "file3", "file4", "file5", "f6", "f7", "f8", "f9", "f10"]

@@ -68,9 +68,7 @@ class DataInfo(QObject):
                 self._allImgInfo[index][key].update(info)
             else:
                 self._allImgInfo[index][key] = info
-            if key == 'pre':
-                # 发出添加数据的信号
-                self.predictDataTable_changed.emit(self._allImgInfo[index][key],index)
+            self.predictDataTable_changed.emit(self._allImgInfo[index], index)
         else:
             self._allImgInfo[index] = {key: info}
 

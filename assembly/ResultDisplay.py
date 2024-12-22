@@ -1,11 +1,43 @@
 from PyQt5.QtGui import QPixmap
-
-from PyQt5.QtWidgets import QFrame, QLayout, QGridLayout, QWidget
-from qfluentwidgets import PushButton, InfoBar, InfoBarPosition, ImageLabel
+from PyQt5.QtWidgets import QGridLayout, QWidget
+from qfluentwidgets import PushButton, ImageLabel
 from assembly.autoResizePushButton import AutoResizePushButton
 from assembly.clockShow import ClockShow
-from assembly.common import getEmj, getSadnessEmj, path_to_absolute
+from assembly.common import getEmj, path_to_absolute, roundToR, checkFloat, checkInt
 from qfluentwidgets import FluentIcon as FIF
+
+RoundNumber = 2
+
+def processPreResDict(redDict: dict):
+    if redDict['path'] is not None:
+        path_str = path_to_absolute(redDict['path'])
+    else:
+        path_str = ''
+    if redDict['rectangle_pos'] is not None:
+        x_float_or_str = round(float(redDict['rectangle_pos']['x']), RoundNumber)
+        y_float_or_str = round(float(redDict['rectangle_pos']['y']), RoundNumber)
+        width_float_or_str = round(float(redDict['rectangle_pos']['width']), RoundNumber)
+        height_float_or_str = round(float(redDict['rectangle_pos']['height']), RoundNumber)
+    else:
+        x_float_or_str = ''
+        y_float_or_str = ''
+        width_float_or_str = ''
+        height_float_or_str = ''
+    if redDict['scores'] is not None:
+        conf_str = roundToR(float(redDict['scores']) * 100, r=RoundNumber)
+    else:
+        conf_str = ''
+    if redDict['classes'] is not None:
+        classes_str = redDict['classes']
+    else:
+        classes_str = ''
+    if redDict['inference_time'] is not None:
+        runtime_str = roundToR(float(redDict['inference_time']), RoundNumber)
+    else:
+        runtime_str = ''
+    return (path_str, x_float_or_str, y_float_or_str, width_float_or_str, height_float_or_str,
+            conf_str, classes_str, runtime_str)
+
 
 def _replace_last_occurrence(s, old, new):
     parts = s.rsplit(old, 1)  # 从右边分割字符串，最多分割一次
@@ -14,14 +46,13 @@ def _replace_last_occurrence(s, old, new):
     return parts[0] + new + parts[1]  # 替换最后一次出现的 old
 
 
-
 class ResultDisplayCard(QWidget):
     def __init__(self, widthLimit: int, parent: QWidget = None):
         super().__init__(parent)
         self.panel = parent
         self.widthLimit = widthLimit
         # 保留几位小数
-        self.roundNumber = 2
+
         self.ImgDetectorBtn = PushButton("识别结果: " + getEmj() + " ", self.panel)
         self.cropImgLabel = ImageLabel()
         self.cropped_pixmap = None # 用于显示裁剪的图片
@@ -86,50 +117,33 @@ class ResultDisplayCard(QWidget):
 
     def preShow(self, redDict:dict):
         self.CoordinatePointBtn.setVisible(True)
-        if redDict['path'] is not None:
-            path = path_to_absolute(redDict['path'])
-            self.setPathBtnText(path)
-        else:
-            self.setPathBtnText('')
-        if redDict['rectangle_pos'] is not None:
+        (path_str, x_float_or_str, y_float_or_str, width_float_or_str, height_float_or_str,
+         conf_str, classes_str, runtime_str) = processPreResDict(redDict)
+        self.setPathBtnText(path_str)
+        if (checkFloat(x_float_or_str) and
+            checkFloat(y_float_or_str) and
+            checkFloat(width_float_or_str) and
+            checkFloat(height_float_or_str)):
+            # 数据是float:
             self.cropImgLabel.setVisible(True)
-            x_float = float(redDict['rectangle_pos']['x'])
-            y_float = float(redDict['rectangle_pos']['y'])
-            width_float = float(redDict['rectangle_pos']['width'])
-            height_float = float(redDict['rectangle_pos']['height'])
-            x = self.dataProcess(x_float)
-            y = self.dataProcess(y_float)
-            width = self.dataProcess(width_float)
-            height = self.dataProcess(height_float)
-            self.setXBtnText(x)
-            self.setYBtnText(y)
-            self.setWidthBtnText(width)
-            self.setHeightBtnText(height)
-            self.cropPreImage(redDict['pixmap'],x_float,y_float,width_float,height_float)
+            self.setXBtnText(str(x_float_or_str))
+            self.setYBtnText(str(y_float_or_str))
+            self.setWidthBtnText(str(width_float_or_str))
+            self.setHeightBtnText(str(height_float_or_str))
+            if redDict['pixmap'] is not None:
+                self.cropPreImage(redDict['pixmap'],x_float_or_str,y_float_or_str,
+                                  width_float_or_str,height_float_or_str)
         else:
             self.cropImgLabel.setVisible(False)
             self.setXBtnText('')
             self.setYBtnText('')
             self.setWidthBtnText('')
             self.setHeightBtnText('')
-        if redDict['scores'] is not None:
-            str_conf = self.dataProcess(float(redDict['scores'])*100)
-            self.setConfBtnText(str_conf)
-        else:
-            self.setConfBtnText('')
-        if redDict['classes'] is not None:
-            classes = redDict['classes']
-            self.setImgDetectorBtnText(classes)
-        else:
-            self.setImgDetectorBtnText('')
-        if redDict['inference_time'] is not None:
-            runtime = self.dataProcess(float(redDict['inference_time']), r=0)
-            self.setRunTimeBtnText(runtime)
-        else:
-            self.setRunTimeBtnText('')
-        if redDict['row'] is not None:
-            row = int(redDict['row'])
-            self.setCoordinatePointBtnText((row,1))
+        self.setConfBtnText(conf_str)
+        self.setImgDetectorBtnText(classes_str)
+        self.setRunTimeBtnText(runtime_str)
+        if 'row' in redDict:
+            self.setCoordinatePointBtnText((int(redDict['row']), 1))
         else:
             self.setCoordinatePointBtnText('')
 
