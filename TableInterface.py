@@ -42,7 +42,7 @@ class TableInterface(QWidget):
         self.outDataBtn.clicked.connect(self._outDataBtnClicked)
         self.predictState.Status_changed.connect(self.outDataChange)
 
-    def checkSavePathExist(self):
+    def _checkSavePathExist(self):
         # 检查路径是否存在
         if ('dataSaveDirectory' in ConfGlobals) and os.path.exists(ConfGlobals['dataSaveDirectory']):
             print("ini dataSaveDirectory路径存在， 加载成功")
