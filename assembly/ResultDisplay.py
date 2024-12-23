@@ -1,3 +1,4 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QGridLayout, QWidget
 from qfluentwidgets import PushButton, ImageLabel
@@ -162,6 +163,8 @@ class ResultDisplayCard(QWidget):
         if pixmap:
             # 根据尺寸截取图片
             self.cropped_pixmap = pixmap.copy(x, y, width, height)
+            # 按比例缩放 QPixmap
+            self.cropped_pixmap = self.cropped_pixmap.scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             # 显示截取的图片
             self.cropImgLabel.setPixmap(self.cropped_pixmap)
 
@@ -173,6 +176,8 @@ class ResultDisplayCard(QWidget):
         if not pixmap.isNull():
             # 根据尺寸截取图片
             self.cropped_pixmap = pixmap.copy(x, y, width, height)
+            # 按比例缩放 QPixmap
+            self.cropped_pixmap = self.cropped_pixmap.scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             # 显示截取的图片
             self.cropImgLabel.setPixmap(self.cropped_pixmap)
         else:

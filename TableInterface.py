@@ -97,7 +97,6 @@ class TableInterface(QWidget):
             orient=Qt.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
-            # position='Custom',   # NOTE: use custom info bar manager
             duration=2000,
             parent=self
         )
