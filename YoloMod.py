@@ -14,7 +14,7 @@ def modifySuffix(orgPath: str, r=".jpg"):
 
 class YoloModel:
     def __init__(self):
-        self.yolo = YOLO("./best.pt", task="detect")
+        self.yolo = YOLO("resource/best.pt", task="detect")
         self.inf = {0: '11 ', 1: '02 ', 2: '07 ', 3: '03 ', 4: '2 ', 5: '13 ', 6: '25 ', 7: '28 ', 8: '04 '}
 
     def run_inference(self, data: list):
