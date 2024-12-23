@@ -11,21 +11,32 @@ from assembly.InfoDisplayCards import InfoDisplayCards
 from assembly.ResultDisplay import ResultDisplayCard
 from assembly.asyncProcessor import ImagePredictThread
 from assembly.displayNumericSlider import DisplayNumericSlider
-from YoloMod import YoloModel
+from assembly.YoloMod import YoloModel
+from confSet import ConfGlobals
 
 
 class _LeftContent:
     def __init__(self, frame: QFrame):
-        self.MaximumWidth = 400
+
         self.leftPanel = frame
-        self.leftPanel.setMinimumWidth(int(self.MaximumWidth * 0.5))
+        self.MaximumWidth = 400
+        self.leftPanel.setMinimumWidth(int(self.MaximumWidth * 0.01))
         self.leftPanel.setMaximumWidth(self.MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         self.loadImage1Btn = PrimaryPushButton(FIF.UPDATE, ' 加载图片 ', self.leftPanel)
-        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
-        self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
-        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.65), self.leftPanel)
+        self.slider2 = None
+        self.slider1 = None
+        self.setSliderchackConfIou()
+        self.resultInfoCard = ResultDisplayCard(self.leftPanel)
         self._addWidgets()
+
+    def setSliderchackConfIou(self):
+        self.slider1 = DisplayNumericSlider(name="iou  ", parent=self.leftPanel)
+        self.slider2 = DisplayNumericSlider(name="conf", parent=self.leftPanel)
+        if ('iou' in ConfGlobals) and type(ConfGlobals['iou']) == float and 0.0 < ConfGlobals['iou'] <= 1.0:
+            self.slider1.setValue(ConfGlobals['iou'])
+        if ('conf' in ConfGlobals) and type(ConfGlobals['conf']) == float and 0.0 < ConfGlobals['conf'] <= 1.0:
+            self.slider2.setValue(ConfGlobals['conf'])
 
     def _addWidgets(self):
         self.leftLayout.addWidget(self.loadImage1Btn)

@@ -5,12 +5,12 @@ from qfluentwidgets import Slider, StrongBodyLabel
 
 
 class DisplayNumericSlider(QFrame):
-    def __init__(self, width:int, name:str, parent=None):
+    def __init__(self, name:str, parent=None):
         super().__init__(parent)
         _layout = QHBoxLayout()
         self.name = name
         self.slider = Slider(Qt.Horizontal, self)
-        self.slider.setFixedWidth(width)
+        self.slider.setFixedWidth(300)
         self.slider.setRange(0, 1000)
         self.slider.setValue(random.randint(300,700))
         self.slider.valueChanged.connect(lambda :self.changevalue())
@@ -20,6 +20,9 @@ class DisplayNumericSlider(QFrame):
         _layout.addWidget(self.slider)
         # 为当前 QFrame 设置布局
         self.setLayout(_layout)
+
+    def setValue(self, value:float) -> None:
+        self.slider.setValue(int(value*1000))
 
     def updataSliderWidth(self,width):
         self.slider.setFixedWidth(width)

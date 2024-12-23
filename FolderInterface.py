@@ -1,5 +1,6 @@
 # coding:utf-8
 import copy
+import os
 import re
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QFileDialog,
@@ -16,17 +17,19 @@ from assembly.ResultDisplay import ResultDisplayCard
 from assembly.SetThreadCountBtn import SetThreadCountBtn
 from assembly.asyncProcessor import ImageLoaderThread, ImagePredictFolderThread, \
     AsyncFolderInterfaceWork, loadPredictionImageThread
-from assembly.common import getSpillFilepath
+from assembly.common import getSpillFilepath, getEmj
 from assembly.displayNumericSlider import DisplayNumericSlider
 from assembly.smoothResizingScrollArea import SmoothResizingScrollArea
-from YoloMod import YoloModel
+from assembly.YoloMod import YoloModel
+from confSet import ConfGlobals
+
 
 class _LeftContent():
     def __init__(self, frame: QFrame):
-        self.MaximumWidth = 400
         # 左侧面板
         self.leftPanel = frame
-        self.leftPanel.setMinimumWidth(int(self.MaximumWidth * 0.5))
+        self.MaximumWidth = 400
+        self.leftPanel.setMinimumWidth(int(self.MaximumWidth * 0.01))
         self.leftPanel.setMaximumWidth(self.MaximumWidth)
         self.leftLayout = FlowLayout(self.leftPanel, needAni=True)
         # 左侧按钮和标签
@@ -36,11 +39,20 @@ class _LeftContent():
         # 图片数量
         self.imageCountBtn = PushButton(FIF.PHOTO, "图片数量: 000", self.leftPanel)
         self.preImageCountBtn = PushButton(FIF.PHOTO, "预测图片数量: 0", self.leftPanel)
-        self.slider1 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="iou  ", parent=self.leftPanel)
-        self.slider2 = DisplayNumericSlider(int(self.MaximumWidth * 0.5), name="conf", parent=self.leftPanel)
+        self.slider1 = None
+        self.slider2 = None
+        self.setSliderchackConfIou()
         self.modelInputData = ["iou", "conf"]
-        self.resultInfoCard = ResultDisplayCard(int(self.MaximumWidth * 0.65), self.leftPanel)
+        self.resultInfoCard = ResultDisplayCard(self.leftPanel)
         self._addWidget()
+
+    def setSliderchackConfIou(self):
+        self.slider1 = DisplayNumericSlider(name="iou  ", parent=self.leftPanel)
+        self.slider2 = DisplayNumericSlider(name="conf", parent=self.leftPanel)
+        if ('iou' in ConfGlobals) and type(ConfGlobals['iou']) == float and 0.0 < ConfGlobals['iou'] <= 1.0:
+            self.slider1.setValue(ConfGlobals['iou'])
+        if ('conf' in ConfGlobals) and type(ConfGlobals['conf']) == float and 0.0 < ConfGlobals['conf'] <= 1.0:
+            self.slider2.setValue(ConfGlobals['conf'])
 
     def _addWidget(self):
         # 添加到左侧布局
@@ -56,10 +68,10 @@ class _LeftContent():
     def resultInfoCardReset(self):
         self.resultInfoCard.reset()
 
-    def updateImgCount(self, newNum:int):
+    def updateImgCount(self, newNum: int):
         self.imageCountBtn.setText(f"图片数量: {str(newNum).zfill(3)}")
 
-    def updatePreImageCount(self, newNum:int):
+    def updatePreImageCount(self, newNum: int):
         self.preImageCountBtn.setText(f"预测图片数量: {str(newNum).zfill(3)}")
 
     @property
@@ -69,6 +81,7 @@ class _LeftContent():
             return int(match.group(1))
         else:
             return 0
+
 
 class _RightContent(SmoothResizingScrollArea):
     def __init__(self, parent: QFrame):
@@ -86,9 +99,11 @@ class _RightContent(SmoothResizingScrollArea):
         self.enableTransparentBackground()
         self.image_extensions = {'.png', '.jpg', '.jpeg', '.bmp'}
 
+
 class FolderInterface(QFrame):
     predictData_changed = pyqtSignal(dict)
-    def __init__(self, yoloMod:YoloModel,datainfo:DataInfo, parent=None):
+
+    def __init__(self, yoloMod: YoloModel, datainfo: DataInfo, predictState:PredictionStateMachine, parent=None):
         super().__init__(parent=parent)
         self.yolo = yoloMod
         self.hBoxLayout = QHBoxLayout(self)
@@ -97,12 +112,12 @@ class FolderInterface(QFrame):
         self.leftRegion = _LeftContent(QFrame(self))
         self.rightRegion = _RightContent(QFrame(self))
         self.dataInfo = datainfo
-        self.threadWorks = AsyncFolderInterfaceWork()  # 异步线程数目
+        self.predictState = predictState
+        self.threadWorks = self._ThreadConfigurator()
         self.foldPlayCards = InfoDisplayCards(self)
         self.setObjectName('FolderInterface')
         self.setupUI()
-        # 状态机
-        self.predictState = PredictionStateMachine()
+
         # 创建信号链接
         self.dataInfo.nowImgCount_changed.connect(self.leftRegion.updateImgCount)
         self.dataInfo.nowPreImgCount_changed.connect(self.leftRegion.updatePreImageCount)
@@ -110,8 +125,13 @@ class FolderInterface(QFrame):
         self.leftRegion.preModelbtn.clicked.connect(self._loadModelFunction)
         self.leftRegion.selectFolderBtn.clicked.connect(self._selectFolder)
         # 加载默认路径
-        # folder_path = "./testimg"
-        # self._loadimg(folder_path)
+        # 检查路径是否存在
+        if ('path' in ConfGlobals) and os.path.exists(ConfGlobals['path']):
+            self._loadimg(ConfGlobals['path'])
+            print("ini 路径存在， 加载成功")
+        else:
+            pass
+
 
     def setupUI(self):
         # 设置主布局
@@ -119,10 +139,20 @@ class FolderInterface(QFrame):
         self.splitter.addWidget(self.rightRegion)
         self.hBoxLayout.addWidget(self.splitter)
 
-    def _setThreadCount(self,count:int):
+    def _ThreadConfigurator(self):
+        if ('threadCount' in ConfGlobals) and type(ConfGlobals['threadCount']) == int and 1 <= ConfGlobals['threadCount'] <= 8:
+            self.threadWorks = AsyncFolderInterfaceWork(ThreadCount=ConfGlobals['threadCount'])  # 异步线程数目
+        else:
+            self.threadWorks = AsyncFolderInterfaceWork()
+        # 显示当前线程数目
+        self.leftRegion.setThreadCountBtn.setTextAndEmitSignal(f"线程数 {self.threadWorks.getThreadCount} " + getEmj(),
+                                                               self.threadWorks.getThreadCount)
+        return self.threadWorks
+
+    def _setThreadCount(self, count: int):
         if (self.predictState.status == Status.NOT_PREDICTED or
-            self.predictState.status == Status.LOAD_IMG or
-            self.predictState.status == Status.PREDICTED):
+                self.predictState.status == Status.LOAD_IMG or
+                self.predictState.status == Status.PREDICTED):
             self.threadWorks = AsyncFolderInterfaceWork(count)
             self.foldPlayCards.InfoSetThreadCountSuccess(self)
         else:
@@ -161,15 +191,16 @@ class FolderInterface(QFrame):
         text = self.predictState.statusValue
         self.leftRegion.preModelbtn.setText(text)
 
-    def imgInfoData(self,index:int, key:str):
-        resDic = self.dataInfo.getIndexKeyImgInfo(index,key)
+    def imgInfoData(self, index: int, key: str):
+        resDic = self.dataInfo.getIndexKeyImgInfo(index, key)
         if resDic is not None:
-            if key=="org":
+            if key == "org":
                 self.leftRegion.resultInfoCard.orgShow(resDic)
-            elif key=="pre":
+            elif key == "pre":
                 self.leftRegion.resultInfoCard.preShow(resDic)
             else:
                 return
+
     @property
     def getslidersValue(self):
         iou, conf = self.leftRegion.slider1.getvalue, self.leftRegion.slider2.getvalue
@@ -200,14 +231,15 @@ class FolderInterface(QFrame):
         try:
             [savePath, rectanglePosDict, scores, classes, imgShape, orGImgPath,
              inferenceTime, threadName, index] = predictResultsList
-            print("res:",[savePath, rectanglePosDict, scores, classes, imgShape, orGImgPath,
-             inferenceTime, threadName, index])
+            print("res:", [savePath, rectanglePosDict, scores, classes, imgShape, orGImgPath,
+                           inferenceTime, threadName, index])
         except Exception as e:
             print("_finishOneTask:错误:", e)
             return
         if rectanglePosDict is None and savePath is not None:
             # 当前结果预测异常显示
-            self.foldPlayCards.InfoBarErr(infStr="第{}行图预测结果没有标志".format(index + 1), parent=self.leftRegion.leftPanel)
+            self.foldPlayCards.InfoBarErr(infStr="第{}行图预测结果没有标志".format(index + 1),
+                                          parent=self.leftRegion.leftPanel)
         pre_info = {"path": savePath,
                     "rectangle_pos": rectanglePosDict,
                     "scores": scores,
@@ -292,7 +324,7 @@ class FolderInterface(QFrame):
             self._statusDisplayUpdate()
 
     def _addPredictImage(self, pixmap: QPixmap, index: int, threadName: str):
-        imageLabel = AdaptiveImageLabel(index, key='pre', parent = self.rightRegion)
+        imageLabel = AdaptiveImageLabel(index, key='pre', parent=self.rightRegion)
         imageLabel.indexImgInfoSignal.connect(self.imgInfoData)
         imageLabel.setPixmap(pixmap)
         row = index
@@ -306,16 +338,15 @@ class FolderInterface(QFrame):
         if index + 1 > self.dataInfo.getNowPreImgCount:
             # 更新图片显示数量
             self.dataInfo.setNowPreImgCount(index + 1)
-        if self.predictState.status == Status.PREDICT_STOPING and self.threadWorks.loadimgPreThreadsCount <= 1 :
+        if self.predictState.status == Status.PREDICT_STOPING and self.threadWorks.loadimgPreThreadsCount <= 1:
             # 这里是手动停止了所有的异步线程的任务，状态转为开始预测状态
             self.predictState.stoping_notprediction()
             self._statusDisplayUpdate()
             self.foldPlayCards.computationPredictCard()
-        if self.predictState.status == Status.PREDICTING and (self.leftRegion.getPreImageCount==self.dataInfo.getNowImgCount):
+        if self.predictState.status == Status.PREDICTING and (
+                self.leftRegion.getPreImageCount == self.dataInfo.getNowImgCount):
             # 这里是预测中，的所有的异步线程的任务都退出了，状态转为预测完成状态
             self.predictState.predicting_completed()
             self._statusDisplayUpdate()
             # 显示模型计算结束卡片
             self.foldPlayCards.computationPredictCard()
-
-

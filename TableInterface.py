@@ -4,14 +4,19 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QTableWidgetItem, QVBoxLayout,
 from qfluentwidgets import ImageLabel, PrimaryPushButton, InfoBar, InfoBarPosition
 from assembly.DataInfo import DataInfo
 from assembly.HistoryRecordTable import HistoryRecordTable
+from assembly.PredictionState import PredictionStateMachine, Status
 from assembly.ResultDisplay import processPreResDict, cropPreImagePath
 from assembly.common import path_to_absolute, getTimeStr, copyFileToDir, getEmj
 from qfluentwidgets import FluentIcon as FIF
 
+from confSet import ConfGlobals
+
+
 class TableInterface(QWidget):
-    def __init__(self,datainfo:DataInfo, parent=None):
+    def __init__(self,datainfo:DataInfo, predictState:PredictionStateMachine, parent=None):
         super().__init__(parent)
         self.dataInfo = datainfo
+        self.predictState = predictState
         # 用于检查重复的数据
         self.deduplicationCheck = {}
         self.setObjectName('TableInterface')
@@ -21,6 +26,7 @@ class TableInterface(QWidget):
         # 创建一个水平布局来放置self.outDataBtn按钮
         self.buttonLayout = QHBoxLayout()
         self.outDataBtn = PrimaryPushButton(FIF.LIBRARY_FILL, ' 导出数据 ', self)
+
         # 设置按钮布局的对齐方式，使其左对齐
         self.buttonLayout.addWidget(self.outDataBtn, alignment=Qt.AlignLeft)
         # 将按钮布局添加到主布局中
@@ -33,19 +39,42 @@ class TableInterface(QWidget):
         self.setLayout(self.hBoxLayout)
         # connect
         self.dataInfo.predictDataTable_changed.connect(self.tableChangedSlot)
-        self.outDataBtn.clicked.connect(self.outDataBtnClicked)
+        self.outDataBtn.clicked.connect(self._outDataBtnClicked)
+        self.predictState.Status_changed.connect(self.outDataChange)
 
-    def outDataBtnClicked(self):
+    def checkSavePathExist(self):
+        # 检查路径是否存在
+        if ('dataSaveDirectory' in ConfGlobals) and os.path.exists(ConfGlobals['dataSaveDirectory']):
+            print("ini dataSaveDirectory路径存在， 加载成功")
+            return ConfGlobals['dataSaveDirectory']
+        else:
+            return None
+
+    def outDataChange(self, nowState):
+        if nowState == Status.PREDICTED or nowState == Status.NOT_PREDICTED:
+            self.outDataBtn.setEnabled(True)
+        else:
+            self.outDataBtn.setEnabled(False)
+
+    def _getSavePath(self):
+        path = self._checkSavePathExist()
+        if path is None:
+            folderPath = QFileDialog.getExistingDirectory(
+                self,
+                "选择保存文件夹",
+                "./",
+                QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+            )
+            if not folderPath:
+                return None
+        else:
+            return path
+
+    def _outDataBtnClicked(self):
         tabledata = self.tableView.getTableData()
-        if len(tabledata) == 0: return
-        folderPath = QFileDialog.getExistingDirectory(
-            self,
-            "选择保存文件夹",
-            "./",
-            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
-        )
-        if not folderPath:
-            return
+        if len(tabledata) == 0 : return
+        folderPath = self._getSavePath()
+        if folderPath is None : return
         nowTime = getTimeStr()
         saveImgPath = os.path.join(folderPath, "预测图_" + nowTime)
         os.makedirs(saveImgPath, exist_ok=False)

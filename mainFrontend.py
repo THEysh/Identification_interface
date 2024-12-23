@@ -10,8 +10,10 @@ from qframelesswindow import StandardTitleBar
 from HomeInterface import HomeInterface
 from FolderInterface import FolderInterface
 from TableInterface import TableInterface
-from YoloMod import YoloModel
+from assembly.PredictionState import PredictionStateMachine
+from assembly.YoloMod import YoloModel
 from assembly.DataInfo import DataInfo
+from confSet import readConfig
 
 
 class Widget(QFrame):
@@ -28,15 +30,21 @@ class Widget(QFrame):
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
+        try:
+            readConfig('config.ini')
+        except:
+            print("ini配置文件加载出错")
         self.splashScreen = None
         self.load()
 
     def initNavigation(self):
         self.yoloMod = YoloModel()
         self.datainfo = DataInfo()
-        self.homeInterface = HomeInterface(self.yoloMod, datainfo = self.datainfo, parent=self)
-        self.folderInterface = FolderInterface(self.yoloMod, datainfo =self.datainfo, parent=self)
-        self.TableInterface = TableInterface(datainfo = self.datainfo, parent=self)
+        # 状态机
+        self.predictState = PredictionStateMachine()
+        self.homeInterface = HomeInterface(self.yoloMod, datainfo=self.datainfo, parent=self)
+        self.folderInterface = FolderInterface(self.yoloMod, datainfo=self.datainfo, predictState=self.predictState, parent=self)
+        self.TableInterface = TableInterface(datainfo=self.datainfo,predictState=self.predictState, parent=self)
         # self.settingInterface = Widget('Setting Interface', self)
         self.addSubInterface(self.homeInterface, FIF.HOME, '欢迎回来')
         self.addSubInterface(self.folderInterface, FIF.FOLDER, '文件夹')

@@ -60,10 +60,10 @@ def cropPreImagePath(image_path: str, x: float, y: float, width: float, height: 
 
 
 class ResultDisplayCard(QWidget):
-    def __init__(self, widthLimit: int, parent: QWidget = None):
+    def __init__(self, parent: QWidget = None):
         super().__init__(parent)
         self.panel = parent
-        self.widthLimit = widthLimit
+
         # 保留几位小数
         self.roundNumber = RoundNumber
         self.ImgDetectorBtn = PushButton("识别结果: " + getEmj() + " ", self.panel)
@@ -76,11 +76,9 @@ class ResultDisplayCard(QWidget):
         self.yBtn = PushButton("y坐标: " + getEmj() + " ", self.panel)
         self.widthBtn = PushButton("宽: " + getEmj() + " ", self.panel)
         self.heightBtn = PushButton("高: " + getEmj() + " ", self.panel)
-        self.pathBtn = AutoResizePushButton(self.widthLimit, FIF.PHOTO,
-                                            "图路径: " + getEmj() + " ",self.panel, widthLimitFactor=1.0)
+        self.pathBtn = AutoResizePushButton(FIF.PHOTO,"图路径: " + getEmj() + " ",self.panel)
         # 原图文件夹
-        self.folderInfoBtn = AutoResizePushButton(self.widthLimit,
-                                                  FIF.FOLDER, getEmj() + "未选择 ", self.panel,widthLimitFactor=1.0)
+        self.folderInfoBtn = AutoResizePushButton(FIF.FOLDER, getEmj() + "未选择 ", self.panel)
         self.folderInfoBtn.setVisible(False)
         self.CoordinatePointBtn = PushButton("位置: "+ getEmj() + " ", self.panel)
         self.CoordinatePointBtn.setVisible(False)

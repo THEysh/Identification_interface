@@ -1,7 +1,7 @@
 import time
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 from PyQt5.QtGui import QPixmap
-from YoloMod import YoloModel
+from assembly.YoloMod import YoloModel
 
 SleepTime = 0.02
 
@@ -12,7 +12,9 @@ class AsyncFolderInterfaceWork:
         self.preThreads = {}
         self.loadimgThreads = {}
         self.imgPreThreads ={}
-
+    @property
+    def getThreadCount(self):
+        return self.threadCount
 
     def addPreThread(self, name, work):
         self.preThreads[name] = work
