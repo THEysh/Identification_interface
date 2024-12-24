@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt, QEventLoop, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, FluentWindow,
-                            NavigationAvatarWidget, SubtitleLabel, setFont,SplashScreen)
+                            NavigationAvatarWidget, SubtitleLabel, setFont, SplashScreen, setTheme, Theme)
 from qfluentwidgets import FluentIcon as FIF
 from qframelesswindow import StandardTitleBar
 from HomeInterface import HomeInterface
@@ -16,24 +16,10 @@ from assembly.DataInfo import DataInfo
 from confSet import readConfig
 
 
-class Widget(QFrame):
-    def __init__(self, text: str, parent=None):
-        super().__init__(parent=parent)
-        self.label = SubtitleLabel(text, self)
-        self.hBoxLayout = QHBoxLayout(self)
-        setFont(self.label, 24)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
-        self.setObjectName(text.replace(' ', '-'))
-
 
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
-        try:
-            readConfig('config.ini')
-        except:
-            print("ini配置文件加载出错")
         self.splashScreen = None
         self.load()
 
@@ -99,8 +85,11 @@ if __name__ == '__main__':
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    try:
+        readConfig('config.ini')
+    except:
+        print("ini配置文件加载出错")
     # setTheme(Theme.DARK)
-
     app = QApplication(sys.argv)
     w = Window()
     w.show()
